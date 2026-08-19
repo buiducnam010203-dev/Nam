@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cài đặt Ứng dụng</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; text-align: center; padding: 50px; background-color: #f2f2f7; }
+        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        .btn { background-color: #007aff; color: white; padding: 15px 30px; text-decoration: none; border-radius: 10px; font-size: 18px; display: inline-block; margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>Cài đặt Web Clip</h2>
+        <p>Bấm vào nút bên dưới để thêm ứng dụng vào màn hình chính của bạn.</p>
+        <!-- Nút bấm tải file sẽ được tạo ở đây -->
+        <a id="downloadBtn" class="btn" href="#">Cài đặt ngay</a>
+    </div>
+
+    <script>
+        // Dữ liệu file cấu hình (Đã bỏ Icon và Mật khẩu)
+        const xmlData = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>FullScreen</key><true/>
+            <key>IsRemovable</key><true/>
+            <key>Label</key><string>Tên App Của Bạn</string>
+            <key>PayloadDescription</key><string>Thêm lối tắt</string>
+            <key>PayloadDisplayName</key><string>Web Clip</string>
+            <key>PayloadIdentifier</key><string>com.webclip.payload.id</string>
+            <key>PayloadType</key><string>com.apple.webClip.managed</string>
+            <key>PayloadUUID</key><string>A1B2C3D4-E5F6-7890-1234-567890ABCDEF</string>
+            <key>PayloadVersion</key><integer>1</integer>
+            <key>Precomposed</key><true/>
+            <key>URL</key><string>https://link-cua-ban.com</string>
+        </dict>
+    </array>
+    <key>PayloadDisplayName</key><string>Cấu hình Ứng Dụng</string>
+    <key>PayloadIdentifier</key><string>com.webclip.profile.id</string>
+    <key>PayloadRemovalDisallowed</key><false/>
+    <key>PayloadType</key><string>Configuration</string>
+    <key>PayloadUUID</key><string>FADCED5D-1111-2222-3333-444455556666</string>
+    <key>PayloadVersion</key><integer>1</integer>
+</dict>
+</plist>`;
+
+        // Đóng gói dữ liệu thành file .mobileconfig
+        const blob = new Blob([xmlData], { type: 'application/x-apple-aspen-config' });
+        const url = URL.createObjectURL(blob);
+        
+        // Gắn link vào nút bấm
+        const btn = document.getElementById('downloadBtn');
+        btn.href = url;
+        btn.download = 'cai-dat-ung-dung.mobileconfig';
+    </script>
+</body>
+</html>
