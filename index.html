@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HEADLOCK</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 16px 30px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Canvas hiệu ứng Code chạy dọc */
+        #matrixCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0.35;
+        }
+
+        /* Lớp giao diện nằm đè lên canvas */
+        .app-content {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            flex-grow: 1;
+            justify-content: space-between;
+        }
+
+        /* Header */
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        .back-btn {
+            font-size: 1rem;
+            color: #ccc;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .title-box {
+            text-align: center;
+        }
+
+        .title-box h1 {
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+            font-weight: 800;
+        }
+
+        .title-box span {
+            font-size: 0.7rem;
+            color: #777;
+            letter-spacing: 1px;
+        }
+
+        .avatar-box {
+            position: relative;
+            margin: 15px 0;
+        }
+
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #222;
+            border: 2px solid #333;
+        }
+
+        /* Bảng chức năng được phóng to hơn */
+        .menu-card {
+            width: 100%;
+            background: rgba(22, 22, 30, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 24px 20px; /* Tăng padding để bảng to ra */
+            display: flex;
+            flex-direction: column;
+            gap: 22px; /* Tăng khoảng cách các dòng */
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 1.05rem; /* Chữ to hơn */
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .icon {
+            font-size: 1.2rem;
+        }
+
+        /* Nút Switch Toggle */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333344;
+            transition: .3s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #22c55e;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        /* Thanh Chuyển Đổi ON/OFF dưới cùng */
+        .bottom-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin-top: 30px;
+        }
+
+        .bottom-label {
+            font-size: 0.75rem;
+            color: #666;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .toggle-container {
+            width: 100%;
+            background: #121218;
+            border-radius: 16px;
+            padding: 4px;
+            display: flex;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 14px 0;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #555;
+            background: transparent;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        /* Mặc định BẬT nút OFF */
+        .toggle-btn.active-off {
+            background: #ef4444;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .toggle-btn.active-on {
+            background: #22c55e;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Canvas cho hiệu ứng Code Matrix -->
+    <canvas id="matrixCanvas"></canvas>
+
+    <div class="app-content">
+        <!-- Header -->
+        <div class="header">
+            <a href="#" class="back-btn">&#8592; Back</a>
+            <div class="title-box">
+                <h1>HEADLOCK</h1>
+                <span>KEY: 1 GIỜ</span>
+            </div>
+            <div style="font-size: 1.2rem;">&#9776;</div>
+        </div>
+
+        <div class="avatar-box">
+            <div class="avatar"></div>
+        </div>
+
+        <!-- Bảng chức năng (Đã mở to) -->
+        <div class="menu-card">
+            <div class="menu-item">
+                <div class="item-left">
+                    <span class="icon" style="color: #ef4444;">🎯</span>
+                    <span>REG FILES</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle1"> <!-- Mặc định OFF -->
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="menu-item">
+                <div class="item-left">
+                    <span class="icon" style="color: #3b82f6;">🚀</span>
+                    <span>BOOST RAM</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle2"> <!-- Mặc định OFF -->
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="menu-item">
+                <div class="item-left">
+                    <span class="icon" style="color: #a855f7;">💀</span>
+                    <span>HEADLOCK</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle3"> <!-- Mặc định OFF -->
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="menu-item">
+                <div class="item-left">
+                    <span class="icon" style="color: #06b6d4;">⚙️</span>
+                    <span>FIX RUNG</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle4"> <!-- Mặc định OFF -->
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Thanh Bật/Tắt dưới cùng (Mặc định ở trạng thái OFF) -->
+        <div class="bottom-section">
+            <div class="bottom-label">STARTING FILES</div>
+            <div class="toggle-container">
+                <button class="toggle-btn" id="btnOn" onclick="setMainState(true)">ON</button>
+                <button class="toggle-btn active-off" id="btnOff" onclick="setMainState(false)">OFF</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Xử lý Trạng thái Mặc định OFF ---
+        function setMainState(isOn) {
+            const btnOn = document.getElementById('btnOn');
+            const btnOff = document.getElementById('btnOff');
+            
+            if (isOn) {
+                btnOn.className = 'toggle-btn active-on';
+                btnOff.className = 'toggle-btn';
+            } else {
+                btnOn.className = 'toggle-btn';
+                btnOff.className = 'toggle-btn active-off';
+            }
+        }
+
+        // --- 2. Hiệu ứng Code Chạy Dọc (Matrix Rain Effect) ---
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()*&^%';
+        const fontSize = 14;
+        const columns = Math.floor(canvas.width / fontSize);
+        const drops = Array(columns).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.08)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#0f0'; // Màu xanh lá matrix
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars.charAt(Math.floor(Math.random() * chars.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 33);
+    </script>
+</body>
+</html>
