@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Trang Tạo Cấu Hình Web Clip</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #fff; color: #000; padding: 24px 16px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 16px; }
+        h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 8px; }
+        label { font-size: 1rem; font-weight: 600; color: #111; }
+        input { width: 100%; padding: 14px 16px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 0.95rem; outline: none; background: #f8fafc; }
+        input:focus { border-color: #007aff; background: #fff; }
+        .submit-btn { width: 100%; background-color: #007aff; color: white; border: none; padding: 16px; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        .submit-btn:active { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Trang Tạo Cấu Hình Web Clip</h1>
+        
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+            <label>Tên Ứng Dụng (Label):</label>
+            <input type="text" id="appName" placeholder="Ví dụ: App Của Tôi">
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+            <label>Đường dẫn trang web (URL):</label>
+            <input type="text" id="appUrl" placeholder="https://...">
+        </div>
+
+        <button onclick="generateProfile()" class="submit-btn">Tải Profile Về Máy</button>
+    </div>
+
+    <script>
+        function generateProfile() {
+            let label = document.getElementById('appName').value.trim() || "HEADLOCK";
+            let url = document.getElementById('appUrl').value.trim() || "https://buiducnam010203-dev.github.io/Nam/";
+            
+            let plistContent = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>FullScreen</key>
+            <true/>
+            <key>IsRemovable</key>
+            <true/>
+            <key>Label</key>
+            <string>${label}</string>
+            <key>PayloadIdentifier</key>
+            <string>com.webclip.${Date.now()}</string>
+            <key>PayloadType</key>
+            <string>com.apple.webClip</string>
+            <key>PayloadUUID</key>
+            <string>3A7B9C1D-8E2F-4A5B-9C0D-1E2F3A4B5C6D</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>URL</key>
+            <string>${url}</string>
+        </dict>
+    </array>
+    <key>PayloadDisplayName</key>
+    <string>${label} Config</string>
+    <key>PayloadIdentifier</key>
+    <string>com.profile.${Date.now()}</string>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadUUID</key>
+    <string>8F9E0D1C-2B3A-4F5E-6A7B-8C9D0E1F2A3B</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+</dict>
+</plist>`;
+
+            let blob = new Blob([plistContent], { type: 'application/x-apple-aspen-config' });
+            let link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = `${label}.mobileconfig`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
