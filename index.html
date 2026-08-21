@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HEADLOCK - Key Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #050508;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .phone-frame {
+            width: 100%;
+            max-width: 414px;
+            height: 100vh;
+            max-height: 896px;
+            background-color: #050508;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 30px 20px;
+        }
+
+        /* Hiệu ứng hạt lấp lánh nền */
+        .stars {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(white 1px, transparent 0),
+                radial-gradient(rgba(255,77,77,0.8) 1px, transparent 0),
+                radial-gradient(rgba(59,130,246,0.8) 1.5px, transparent 0);
+            background-size: 50px 50px, 80px 80px, 120px 120px;
+            background-position: 0 0, 20px 40px, 40px 20px;
+            opacity: 0.4;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Nội dung hiển thị */
+        .content-container {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .top-nav {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .back-text {
+            align-self: flex-start;
+            color: #fff;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .app-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #60a5fa;
+            text-shadow: 0 0 15px rgba(96, 165, 250, 0.4);
+        }
+
+        /* Avatar phần Login */
+        .login-avatar-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .login-avatar {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+        }
+
+        .login-label {
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #fff;
+        }
+
+        /* Form nhập Key */
+        .form-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .key-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 16px 20px;
+            border-radius: 30px;
+            color: white;
+            font-size: 0.95rem;
+            text-align: center;
+            outline: none;
+            backdrop-filter: blur(5px);
+            transition: 0.3s;
+        }
+
+        .key-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(90deg, #2563eb, #3b82f6);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
+            transition: 0.2s;
+        }
+
+        .login-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Phần Contact phía dưới */
+        .contact-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .contact-title {
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            color: #888;
+            font-weight: 700;
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .social-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.4rem;
+            color: white;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .zalo-bg { background-color: #0068ff; }
+        .fb-bg { background-color: #1877f2; }
+
+        .footer-credit {
+            font-size: 0.7rem;
+            color: #555;
+            letter-spacing: 0.5px;
+        }
+
+        /* Giao diện chính của app (Ẩn đi trước khi nhập đúng Key) */
+        .main-app-screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone-frame">
+        <div class="stars"></div>
+
+        <!-- MÀN HÌNH NHẬP KEY LOGIN -->
+        <div class="content-container" id="loginScreen">
+            <div class="top-nav">
+                <div class="back-text"><i class="fas fa-arrow-left"></i> Back</div>
+                <div class="app-title">HEADLOCK</div>
+                
+                <div class="login-avatar-wrap">
+                    <img src="https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=150" alt="Avatar" class="login-avatar">
+                    <div class="login-label">KEY LOGIN</div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <input type="text" id="keyInput" class="key-input" placeholder="Enter your key...">
+                <button onclick="checkKey()" class="login-btn">LOGIN</button>
+            </div>
+
+            <div class="contact-section">
+                <div class="contact-title">CONTACT</div>
+                <div class="social-icons">
+                    <a href="https://zalo.me" target="_blank" class="social-icon zalo-bg" title="Zalo">Zalo</a>
+                    <a href="https://facebook.com" target="_blank" class="social-icon fb-bg" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                </div>
+                <div class="footer-credit">by NgChiDuc</div>
+            </div>
+        </div>
+
+
+        <!-- MÀN HÌNH CHÍNH SAU KHI LOGIN THÀNH CÔNG (Giao diện cấu hình trước đó) -->
+        <div class="main-app-screen" id="appScreen">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; position:relative; z-index:2;">
+                <div style="color:#aaa; font-size:0.9rem;"><i class="fas fa-arrow-left"></i> Back</div>
+                <div style="font-weight:700; font-size:1.1rem; letter-spacing:1px; text-align:center;">HEADLOCK<span style="display:block; font-size:0.7rem; color:#777; font-weight:400;">BY NgChiDuc</span></div>
+                <div style="color:#fff;"><i class="fas fa-bars"></i></div>
+            </div>
+
+            <div style="display:flex; justify-content:center; margin-bottom:20px; position:relative; z-index:2;">
+                <img src="https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=150" style="width:75px; height:75px; border-radius:50%; object-fit:cover;">
+            </div>
+
+            <div style="background-color: #161618; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 20px; border: 1px solid #242428; position:relative; z-index:2;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.9rem; font-weight:600;"><i class="fas fa-crosshairs" style="color: #ff4d4d; margin-right:10px;"></i> REG FILES</span>
+                    <input type="checkbox" id="chk1" style="width:20px; height:20px;">
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.9rem; font-weight:600;"><i class="fas fa-rocket" style="color: #3b82f6; margin-right:10px;"></i> BOST RAM</span>
+                    <input type="checkbox" id="chk2" style="width:20px; height:20px;">
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.9rem; font-weight:600;"><i class="fas fa-skull" style="color: #a1a1aa; margin-right:10px;"></i> HEADLOCK</span>
+                    <input type="checkbox" id="chk3" style="width:20px; height:20px;">
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.9rem; font-weight:600;"><i class="fas fa-cog" style="color: #e4e4e7; margin-right:10px;"></i> FIX RUNG</span>
+                    <input type="checkbox" id="chk4" style="width:20px; height:20px;">
+                </div>
+            </div>
+
+            <div style="margin-top:20px; position:relative; z-index:2; text-align:center;">
+                <div style="font-size:0.75rem; letter-spacing: 1.5px; color: #777; font-weight: 700; margin-bottom:8px;">STARTING FILES</div>
+                <div style="display:flex; background:#161618; border-radius:14px; padding:4px; border:1px solid #242428;">
+                    <button onclick="triggerOn()" style="flex:1; padding:12px; background:transparent; color:#888; border:none; font-weight:700; border-radius:10px;" id="mainOn">ON</button>
+                    <button onclick="triggerOff()" style="flex:1; padding:12px; background:#e11d48; color:white; border:none; font-weight:700; border-radius:10px;" id="mainOff">OFF</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ==========================================================
+        // QUẢN LÍ KEY CỦA BẠN Ở ĐÂY:
+        // Bạn có thể thêm hoặc thay đổi các key tùy ý trong dấu ngoặc vuông
+        // ==========================================================
+        const validKeys = ['HEADLOCK2026', 'admin123', 'vipnampro'];
+
+        function checkKey() {
+            const inputVal = document.getElementById('keyInput').value.trim();
+            
+            if (validKeys.includes(inputVal)) {
+                alert('Đăng nhập thành công!');
+                // Ẩn màn hình nhập key, hiện màn hình chức năng chính
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appScreen').style.display = 'flex';
+            } else {
+                alert('Key không hợp lệ hoặc đã hết hạn! Vui lòng liên hệ quản trị viên.');
+            }
+        }
+
+        function triggerOn() {
+            const c1 = document.getElementById('chk1').checked;
+            const c2 = document.getElementById('chk2').checked;
+            const c3 = document.getElementById('chk3').checked;
+            const c4 = document.getElementById('chk4').checked;
+
+            if (c1 && c2 && c3 && c4) {
+                let choice = prompt("Chọn phiên bản game:\n1. Free Fire Thường\n2. Free Fire Max\n(Nhập số 1 hoặc 2):");
+                if (choice === '1') {
+                    window.location.href = "freefire://app";
+                } else if (choice === '2') {
+                    window.location.href = "freefiremax://app";
+                } else if (choice !== null) {
+                    alert('Đã kích hoạt cấu hình thành công cho game!');
+                }
+            } else {
+                alert('Vui lòng bật tất cả các tính năng trước khi chọn ON!');
+            }
+        }
+
+        function triggerOff() {
+            document.getElementById('chk1').checked = false;
+            document.getElementById('chk2').checked = false;
+            document.getElementById('chk3').checked = false;
+            document.getElementById('chk4').checked = false;
+            alert('Đã tắt toàn bộ cấu hình!');
+        }
+    </script>
+
+</body>
+</html>
