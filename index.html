@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HEADLOCK</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #050508;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .phone-frame {
+            width: 100%;
+            max-width: 414px;
+            height: 100vh;
+            max-height: 896px;
+            background-color: #000;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 20px;
+        }
+
+        /* Hiệu ứng hạt nền */
+        .stars {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(white 1px, transparent 0),
+                radial-gradient(rgba(255,77,77,0.8) 1px, transparent 0),
+                radial-gradient(rgba(59,130,246,0.8) 1.5px, transparent 0);
+            background-size: 50px 50px, 80px 80px, 120px 120px;
+            background-position: 0 0, 20px 40px, 40px 20px;
+            opacity: 0.3;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* MÀN HÌNH LOGIN */
+        #loginScreen {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        .top-nav {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-text {
+            align-self: flex-start;
+            color: #fff;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .app-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #60a5fa;
+            text-shadow: 0 0 15px rgba(96, 165, 250, 0.4);
+        }
+
+        .login-avatar-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .login-avatar {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+        }
+
+        .login-label {
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #fff;
+        }
+
+        .form-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .key-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 16px 20px;
+            border-radius: 30px;
+            color: white;
+            font-size: 0.95rem;
+            text-align: center;
+            outline: none;
+            backdrop-filter: blur(5px);
+            transition: 0.3s;
+        }
+
+        .key-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(90deg, #2563eb, #3b82f6);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
+            transition: 0.2s;
+        }
+
+        .login-btn:active {
+            transform: scale(0.97);
+        }
+
+        .contact-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .contact-title {
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            color: #888;
+            font-weight: 700;
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .social-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.4rem;
+            color: white;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .zalo-bg { background-color: #0068ff; }
+        .fb-bg { background-color: #1877f2; }
+        .footer-credit { font-size: 0.7rem; color: #555; }
+
+
+        /* MÀN HÌNH CHÍNH */
+        #appScreen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            justify-content: flex-start;
+            position: relative;
+            z-index: 2;
+        }
+
+        .app-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff;
+            margin-bottom: 12px;
+        }
+
+        .back-icon {
+            font-size: 0.9rem;
+            color: #ccc;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .header-title {
+            text-align: center;
+            flex-grow: 1;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+
+        .header-title span.sub-title {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 400;
+            color: #777;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        .menu-icon {
+            font-size: 1.2rem;
+            color: #fff;
+        }
+
+        .avatar-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .avatar {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .badge {
+            position: absolute;
+            bottom: -2px;
+            right: 43%;
+            background-color: #1e1e1e;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.65rem;
+            color: #bbb;
+        }
+
+        /* BẢNG CHỨC NĂNG CHUẨN MẪU */
+        .controls-panel {
+            width: 100%;
+            background-color: #121215;
+            border-radius: 20px;
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            border: 1px solid #1f1f26;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+        }
+
+        .control-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+        }
+
+        .control-label {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #f4f4f5;
+            letter-spacing: 0.5px;
+        }
+
+        .control-label i {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        /* SWITCH XANH LÁ CHUẨN MẪU */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+        }
+
+        .switch input { 
+            opacity: 0; width: 0; height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #27272a;
+            transition: .25s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px; width: 20px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .25s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #22c55e;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.4);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+            background-color: white;
+        }
+
+        /* KHUNG NÚT ON / OFF DƯỚI ĐÁY CHUẨN MẪU */
+        .starting-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .starting-title {
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            color: #888;
+            font-weight: 700;
+        }
+
+        .toggle-box {
+            width: 100%;
+            background-color: #121215;
+            border-radius: 16px;
+            display: flex;
+            padding: 4px;
+            border: 1px solid #1f1f26;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn.on {
+            color: #ffffff;
+            background: #22c55e;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+        }
+
+        .toggle-btn.off {
+            color: #71717a;
+            background: transparent;
+        }
+
+        /* BẢNG CHẠY MÃ CODE (TERMINAL) */
+        .terminal-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .terminal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .terminal-box {
+            width: 88%;
+            max-width: 340px;
+            background: #090d16;
+            border: 1px solid #1e3a8a;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8), 0 0 20px rgba(37, 99, 235, 0.3);
+            display: flex;
+            flex-direction: column;
+            animation: popUp 0.3s ease;
+        }
+
+        @keyframes popUp {
+            0% { transform: scale(0.85); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .terminal-header {
+            background: linear-gradient(90deg, #1d4ed8, #3b82f6);
+            color: white;
+            padding: 14px 16px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            text-align: center;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .terminal-body {
+            background: #05070c;
+            padding: 18px;
+            height: 210px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #4ade80;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            scroll-behavior: smooth;
+        }
+
+        .terminal-body::-webkit-scrollbar {
+            width: 3px;
+        }
+        .terminal-body::-webkit-scrollbar-thumb {
+            background: #22c55e;
+            border-radius: 4px;
+        }
+
+        /* Modal chọn Game */
+        .modal-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            width: 85%;
+            background: #161618;
+            border: 1px solid #2c2c35;
+            border-radius: 24px;
+            padding: 24px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .game-option {
+            background: #222228;
+            color: white;
+            padding: 16px;
+            border-radius: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border: 1px solid #33333d;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone-frame">
+        <div class="stars"></div>
+
+        <!-- MÀN HÌNH NHẬP KEY -->
+        <div id="loginScreen">
+            <div class="top-nav">
+                <div class="back-text"><i class="fas fa-arrow-left"></i> Back</div>
+                <div class="app-title">HEADLOCK</div>
+                <div class="login-avatar-wrap">
+                    <img src="[DÁN_LINK_ẢNH_CỦA_BẠN_VÀO_ĐÂY]" alt="Avatar" class="login-avatar" id="loginAvatarImg">
+                    <div class="login-label">KEY LOGIN</div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <input type="text" id="keyInput" class="key-input" placeholder="Enter your key...">
+                <button onclick="checkKey()" class="login-btn">LOGIN</button>
+            </div>
+
+            <div class="contact-section">
+                <div class="contact-title">CONTACT</div>
+                <div class="social-icons">
+                    <a href="https://zalo.me" target="_blank" class="social-icon zalo-bg">Zalo</a>
+                    <a href="https://facebook.com" target="_blank" class="social-icon fb-bg"><i class="fab fa-facebook-f"></i></a>
+                </div>
+                <div class="footer-credit">by Oishivip</div>
+            </div>
+        </div>
+
+
+        <!-- MÀN HÌNH CHÍNH -->
+        <div id="appScreen">
+            <div class="app-header">
+                <div class="back-icon" onclick="goBackToLogin()"><i class="fas fa-arrow-left"></i> Back</div>
+                <div class="header-title">
+                    HEADLOCK
+                    <span class="sub-title">BY Oishivip</span>
+                </div>
+                <div class="menu-icon"><i class="fas fa-bars"></i></div>
+            </div>
+
+            <div class="avatar-container">
+                <img src="[DÁN_LINK_ẢNH_CỦA_BẠN_VÀO_ĐÂY]" alt="Avatar" class="avatar" id="mainAvatarImg">
+                <div class="badge"><i class="fas fa-cog"></i></div>
+            </div>
+
+            <!-- BẢNG CHỨC NĂNG CHUẨN MẪU -->
+            <div class="controls-panel">
+                <div class="control-item">
+                    <div class="control-label"><i class="fas fa-crosshairs" style="color: #ff4d4d;"></i> REG FILES</div>
+                    <label class="switch"><input type="checkbox" id="chk1" onchange="runTerminal(this, 'REG FILES')"><span class="slider"></span></label>
+                </div>
+                <div class="control-item">
+                    <div class="control-label"><i class="fas fa-rocket" style="color: #3b82f6;"></i> BOST RAM</div>
+                    <label class="switch"><input type="checkbox" id="chk2" onchange="runTerminal(this, 'BOST RAM')"><span class="slider"></span></label>
+                </div>
+                <div class="control-item">
+                    <div class="control-label"><i class="fas fa-skull" style="color: #a1a1aa;"></i> HEADLOCK</div>
+                    <label class="switch"><input type="checkbox" id="chk3" onchange="runTerminal(this, 'HEADLOCK')"><span class="slider"></span></label>
+                </div>
+                <div class="control-item">
+                    <div class="control-label"><i class="fas fa-cog" style="color: #60a5fa;"></i> FIX RUNG</div>
+                    <label class="switch"><input type="checkbox" id="chk4" onchange="runTerminal(this, 'FIX RUNG')"><span class="slider"></span></label>
+                </div>
+            </div>
+
+            <div class="starting-section">
+                <div class="starting-title">STARTING FILES</div>
+                <div class="toggle-box">
+                    <div class="toggle-btn on" id="btnOn" onclick="clickOn()">ON</div>
+                    <div class="toggle-btn off" id="btnOff" onclick="clickOff()">OFF</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BẢNG CHẠY MÃ CODE (TERMINAL) -->
+        <div class="terminal-overlay" id="terminalModal">
+            <div class="terminal-box">
+                <div class="terminal-header" id="terminalTitle">🚀 Tối ưu máy</div>
+                <div class="terminal-body" id="terminalLogs"></div>
+            </div>
+        </div>
+
+        <!-- MODAL CHỌN GAME -->
+        <div class="modal-overlay" id="gameModal">
+            <div class="modal-content">
+                <div style="font-size: 1.1rem; font-weight: 700; color: #fff;">CHỌN PHIÊN BẢN GAME</div>
+                <p style="font-size: 0.8rem; color: #888; margin-top: -8px;">Vui lòng chọn game để khởi động cấu hình</p>
+                
+                <a href="freefire://app" onclick="selectGame()" class="game-option">
+                    <i class="fas fa-gamepad" style="color: #ff4d4d;"></i> Free Fire Thường
+                </a>
+                
+                <a href="freefiremax://app" onclick="selectGame()" class="game-option">
+                    <i class="fas fa-fire" style="color: #f97316;"></i> Free Fire Max
+                </a>
+                
+                <button onclick="closeModal()" style="background: transparent; border: none; color: #666; cursor: pointer; font-weight: 600;">Hủy bỏ</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Dán link ảnh của bạn vào trong cặp dấu ngoặc kép bên dưới
+        const myAvatarUrl = "[DÁN_LINK_ẢNH_CỦA_BẠN_VÀO_ĐÂY]"; 
+        
+        if(myAvatarUrl && !myAvatarUrl.includes("DÁN_LINK")) {
+            document.getElementById('loginAvatarImg').src = myAvatarUrl;
+            document.getElementById('mainAvatarImg').src = myAvatarUrl;
+        }
+
+        const validKeys = ['HEADLOCK2026', 'admin123', 'vipnampro', 'namdeptrai', 'oishivip'];
+
+        function checkKey() {
+            const val = document.getElementById('keyInput').value.trim();
+            if (validKeys.includes(val)) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appScreen').style.display = 'flex';
+            } else {
+                alert('Key không hợp lệ hoặc sai! Vui lòng kiểm tra lại.');
+            }
+        }
+
+        function goBackToLogin() {
+            document.getElementById('appScreen').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('keyInput').value = '';
+        }
+
+        const btnOn = document.getElementById('btnOn');
+        const btnOff = document.getElementById('btnOff');
+        const gameModal = document.getElementById('gameModal');
+        const terminalModal = document.getElementById('terminalModal');
+        const terminalLogs = document.getElementById('terminalLogs');
+        const terminalTitle = document.getElementById('terminalTitle');
+
+        function runTerminal(checkbox, featureName) {
+            if (checkbox.checked) {
+                terminalTitle.innerHTML = `🚀 Tối ưu máy`;
+                terminalLogs.innerHTML = "";
+                terminalModal.classList.add('active');
+
+                const logs = [
+                    "$ Applying performance boost...",
+                    "$ Finalizing optimization...",
+                    "$ Checking CPU threads...",
+                    "$ Reallocating virtual memory...",
+                    "$ Securing background...",
+                    `$ Module ${featureName} injected successfully!`
+                ];
+
+                let i = 0;
+                function addLogLine() {
+                    if (i < logs.length) {
+                        const p = document.createElement('div');
+                        p.innerText = logs[i];
+                        terminalLogs.appendChild(p);
+                        
+                        terminalLogs.scrollTop = terminalLogs.scrollHeight;
+                        
+                        i++;
+                        setTimeout(addLogLine, 180); 
+                    } else {
+                        setTimeout(() => {
+                            terminalModal.classList.remove('active');
+                        }, 700);
+                    }
+                }
+
+                addLogLine();
+            }
+        }
+
+        function clickOn() {
+            const c1 = document.getElementById('chk1').checked;
+            const c2 = document.getElementById('chk2').checked;
+            const c3 = document.getElementById('chk3').checked;
+            const c4 = document.getElementById('chk4').checked;
+
+            if (c1 && c2 && c3 && c4) {
+                btnOn.classList.add('on');
+                btnOn.classList.remove('off');
+                btnOff.classList.add('off');
+                btnOff.classList.remove('on');
+                gameModal.classList.add('active');
+            } else {
+                alert('Vui lòng bật tất cả các tính năng trước khi nhấn ON!');
+                event.target.checked = false;
+            }
+        }
+
+        function clickOff() {
+            btnOff.classList.add('on');
+            btnOff.classList.remove('off');
+            btnOn.classList.add('off');
+            btnOn.classList.remove('on');
+            gameModal.classList.remove('active');
+            
+            document.getElementById('chk1').checked = false;
+            document.getElementById('chk2').checked = false;
+            document.getElementById('chk3').checked = false;
+            document.getElementById('chk4').checked = false;
+        }
+
+        function closeModal() {
+            gameModal.classList.remove('active');
+            clickOff();
+        }
+
+        function selectGame() {
+            setTimeout(() => {
+                closeModal();
+            }, 500);
+        }
+    </script>
+
+</body>
+</html>
