@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HEADLOCK VIP</title>
+    <link rel="apple-touch-icon" href="avatar.jpg">
+    <link rel="icon" href="avatar.jpg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #050505; color: #ffffff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 16px; overflow-x: hidden; position: relative; }
+        #matrixCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.3; }
+        
+        .ip-indicator { position: fixed; top: 52px; left: 12px; z-index: 999; background: rgba(18, 18, 24, 0.85); backdrop-filter: blur(8px); border: 1px solid rgba(34, 197, 94, 0.4); padding: 6px 10px; border-radius: 8px; font-size: 0.7rem; color: #22c55e; font-family: monospace; font-weight: bold; box-shadow: 0 0 10px rgba(34, 197, 94, 0.2); }
+
+        .app-content { position: relative; z-index: 2; width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; }
+        .avatar-img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; background: #000; border: 2px solid #22c55e; box-shadow: 0 0 15px rgba(34, 197, 94, 0.4); margin-bottom: 12px; }
+
+        /* MÀN HÌNH NHẬP KEY */
+        #keyScreen { width: 100%; background: rgba(22, 22, 30, 0.9); backdrop-filter: blur(10px); border-radius: 20px; padding: 25px 20px; display: flex; flex-direction: column; align-items: center; gap: 14px; border: 1px solid rgba(255, 255, 255, 0.08); text-align: center; }
+        #keyScreen h2 { font-size: 1.3rem; letter-spacing: 2px; }
+        .key-input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); background: #121218; color: #fff; font-size: 1rem; text-align: center; outline: none; }
+        .key-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; background: #22c55e; color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; }
+
+        /* MÀN HÌNH CHÍNH */
+        #mainApp { display: none; width: 100%; flex-direction: column; align-items: center; gap: 14px; }
+        .header { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+        .title-box { text-align: center; }
+        .title-box h1 { font-size: 1.2rem; letter-spacing: 2px; }
+        .title-box span { font-size: 0.65rem; color: #22c55e; font-weight: bold; display: block; font-family: monospace; }
+        .menu-card { width: 100%; background: rgba(22, 22, 30, 0.85); backdrop-filter: blur(10px); border-radius: 20px; padding: 18px 20px; display: flex; flex-direction: column; gap: 15px; border: 1px solid rgba(255, 255, 255, 0.08); }
+        .menu-item { display: flex; justify-content: space-between; align-items: center; }
+        .item-left { display: flex; align-items: center; gap: 14px; font-weight: 700; font-size: 0.85rem; }
+
+        .sens-card { width: 100%; background: rgba(22, 22, 30, 0.85); backdrop-filter: blur(10px); border-radius: 20px; padding: 14px 20px; border: 1px solid rgba(255, 255, 255, 0.08); display: flex; flex-direction: column; gap: 8px; }
+        .sens-header { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 0.85rem; }
+        .sens-value { color: #22c55e; font-size: 0.9rem; }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]:focus { outline: none; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; cursor: pointer; background: #121218; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.1); }
+        input[type=range]::-webkit-slider-thumb { height: 18px; width: 18px; border-radius: 50%; background: #22c55e; cursor: pointer; -webkit-appearance: none; margin-top: -5px; box-shadow: 0 0 10px rgba(34, 197, 94, 0.6); }
+
+        .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333344; transition: .3s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: #22c55e; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .bottom-section { width: 100%; margin-top: 2px; text-align: center; }
+        .toggle-container { width: 100%; background: #121218; border-radius: 16px; padding: 4px; display: flex; margin-top: 6px; }
+        .toggle-btn { flex: 1; padding: 12px 0; border: none; border-radius: 12px; font-weight: 800; color: #555; background: transparent; cursor: pointer; }
+        .toggle-btn.active-off { background: #ef4444; color: #fff; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+        .toggle-btn.active-on { background: #22c55e; color: #fff; box-shadow: 0 0 15px rgba(34, 197, 94, 0.4); }
+
+        .script-run-card { width: 100%; background: rgba(18, 18, 24, 0.9); backdrop-filter: blur(10px); border-radius: 16px; padding: 12px 14px; border: 1px solid rgba(59, 130, 246, 0.4); box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+        .script-run-title { font-size: 0.75rem; font-weight: 800; color: #3b82f6; letter-spacing: 1px; }
+        .script-console { font-family: monospace; font-size: 0.7rem; color: #22c55e; height: 110px; overflow-y: hidden; display: flex; flex-direction: column; gap: 2px; word-break: break-all; }
+
+        #hackerModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 200; justify-content: center; align-items: center; padding: 20px; }
+        .hacker-box { width: 100%; max-width: 380px; background: #000; border: 1.5px solid #22c55e; border-radius: 16px; padding: 16px; font-family: monospace; color: #22c55e; font-size: 0.75rem; height: 260px; overflow: hidden; box-shadow: 0 0 25px rgba(34, 197, 94, 0.4); word-break: break-all; }
+        #gameModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 300; backdrop-filter: blur(8px); justify-content: center; align-items: center; padding: 20px; }
+        .game-card { width: 100%; max-width: 360px; background: #16161e; border-radius: 20px; padding: 20px; border: 1px solid #3b82f6; text-align: center; display: flex; flex-direction: column; gap: 15px; }
+        .game-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: bold; font-size: 1rem; color: #fff; cursor: pointer; }
+        .btn-ff-normal { background: linear-gradient(135deg, #f97316, #ef4444); }
+        .btn-ff-max { background: linear-gradient(135deg, #a855f7, #3b82f6); }
+    </style>
+</head>
+<body>
+    <canvas id="matrixCanvas"></canvas>
+    <div class="ip-indicator" id="ipDisplay">IP: Đang tải...</div>
+
+    <div class="app-content">
+        <!-- MÀN HÌNH NHẬP KEY -->
+        <div id="keyScreen">
+            <img src="avatar.jpg" class="avatar-img" alt="Avatar">
+            <h2>XÁC NHẬN KEY</h2>
+            <input type="text" id="keyInput" class="key-input" placeholder="Nhập Key của bạn...">
+            <button onclick="checkKey()" class="key-btn" id="btnCheckKey">XÁC NHẬN</button>
+        </div>
+
+        <!-- MÀN HÌNH CHÍNH -->
+        <div id="mainApp">
+            <div class="header">
+                <span style="color:#ef4444; font-size: 0.85rem; font-weight: bold; cursor: pointer;" onclick="logout()">🔒 Thoát</span>
+                <div class="title-box">
+                    <h1>HEADLOCK</h1>
+                    <span id="keyLabel">KEY: Đang cập nhật...</span>
+                </div>
+                <div style="font-size: 1.2rem;">⚙️</div>
+            </div>
+            <img src="avatar.jpg" class="avatar-img" alt="Avatar">
+            
+            <div class="menu-card">
+                <div class="menu-item"><div class="item-left"><span style="color: #ef4444;">🎯</span> REG FILES</div><label class="switch"><input type="checkbox" id="sw1" onchange="triggerHackerEffect(this)"><span class="slider"></span></label></div>
+                <div class="menu-item"><div class="item-left"><span style="color: #3b82f6;">🚀</span> BOOST RAM</div><label class="switch"><input type="checkbox" id="sw2" onchange="triggerHackerEffect(this)"><span class="slider"></span></label></div>
+                <div class="menu-item"><div class="item-left"><span style="color: #a855f7;">💀</span> HEADLOCK</div><label class="switch"><input type="checkbox" id="sw3" onchange="triggerHackerEffect(this)"><span class="slider"></span></label></div>
+                <div class="menu-item"><div class="item-left"><span style="color: #06b6d4;">⚙️</span> FIX RUNG</div><label class="switch"><input type="checkbox" id="sw4" onchange="triggerHackerEffect(this)"><span class="slider"></span></label></div>
+                <div class="menu-item"><div class="item-left"><span style="color: #eab308;">🛡️</span> FIX LỐ (CHỐNG TRÔI)</div><label class="switch"><input type="checkbox" id="sw5" onchange="triggerHackerEffect(this)"><span class="slider"></span></label></div>
+                <div class="menu-item"><div class="item-left"><span style="color: #10b981;">🔒</span> SENSILOCK</div><label class="switch"><input type="checkbox" id="sw6" onchange="triggerHackerEffect(this)"><span class="slider"></span></label></div>
+                <div class="menu-item"><div class="item-left"><span style="color: #ec4899;">👑</span> LEGET PRO</div><label class="switch"><input type="checkbox" id="sw7" onchange="triggerHackerEffect(this)"><span class="slider"></span></label></div>
+            </div>
+
+            <div class="sens-card">
+                <div class="sens-header"><span>⚡ ĐỘ NHẠY MÀN HÌNH</span><span class="sens-value" id="sensVal">0%</span></div>
+                <input type="range" id="sensSlider" min="0" max="100" value="0" oninput="updateSensitivity(this.value)">
+            </div>
+            <div class="sens-card">
+                <div class="sens-header"><span>🎯 ĐIỀU CHỈNH DPI</span><span class="sens-value" id="dpiVal">0</span></div>
+                <input type="range" id="dpiSlider" min="0" max="1000" value="0" oninput="updateDpi(this.value)">
+            </div>
+
+            <div class="bottom-section">
+                <span style="font-size: 0.75rem; color: #666; font-weight: 700;">STARTING FILES</span>
+                <div class="toggle-container">
+                    <button class="toggle-btn" id="btnOn" onclick="clickOnButton()">ON</button>
+                    <button class="toggle-btn active-off" id="btnOff" onclick="setMainState(false)">OFF</button>
+                </div>
+            </div>
+
+            <div class="script-run-card">
+                <div class="script-run-title">SCRIPT RUN</div>
+                <div class="script-console" id="scriptConsole">
+                    <div>> p_packet_sz = headlock_base</div>
+                    <div>> fps_limit=60</div>
+                    <div>> low_latency=true</div>
+                    <div>> status: boosted</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="hackerModal"><div class="hacker-box" id="hackerConsole"></div></div>
+    <div id="gameModal">
+        <div class="game-card">
+            <h2 style="color: #fff; font-size: 1.2rem;">CHỌN PHIÊN BẢN GAME</h2>
+            <button class="game-btn btn-ff-normal" onclick="launchGame('freefire')">🔥 FREE FIRE THƯỜNG</button>
+            <button class="game-btn btn-ff-max" onclick="launchGame('freefiremax')">⚡ FREE FIRE MAX</button>
+            <button onclick="closeGameModal()" style="background: transparent; border: none; color: #888; margin-top: 5px; cursor: pointer;">Hủy bỏ</button>
+        </div>
+    </div>
+
+    <script>
+        const FIREBASE_URL = "https://headlock-df1ab-default-rtdb.firebaseio.com/keys";
+        let currentActiveKey = "", currentExpireTime = 0, countdownTimer = null, clientIP = "Đang tải...";
+
+        async function fetchUserIP() {
+            try {
+                let res = await fetch('https://api.ipify.org?format=json');
+                let data = await res.json();
+                document.getElementById('ipDisplay').innerText = `IP: ${data.ip}`;
+                return data.ip;
+            } catch (e) {
+                let fallbackID = 'IP-' + Math.floor(Math.random() * 89999 + 10000);
+                document.getElementById('ipDisplay').innerText = `IP: ${fallbackID}`;
+                return fallbackID;
+            }
+        }
+        fetchUserIP().then(ip => { clientIP = ip; checkAutoLogin(); });
+
+        async function checkAutoLogin() {
+            let savedKey = localStorage.getItem('active_headlock_key');
+            if (!savedKey) return;
+            let res = await fetch(`${FIREBASE_URL}.json`);
+            let keys = await res.json() || {};
+            if (keys[savedKey]) {
+                let kData = keys[savedKey];
+                let h = typeof kData === 'object' ? kData.hours : kData;
+                let ip = typeof kData === 'object' ? kData.device_ip : null;
+                let act = typeof kData === 'object' ? kData.activated_at : null;
+                if (act && ip === clientIP && Date.now() <= (act + (h * 3600000))) {
+                    currentActiveKey = savedKey; currentExpireTime = act + (h * 3600000);
+                    startCountdownDisplay();
+                    document.getElementById('keyScreen').style.display = 'none';
+                    document.getElementById('mainApp').style.display = 'flex';
+                }
+            }
+        }
+
+        async function checkKey() {
+            let val = document.getElementById('keyInput').value.trim().toUpperCase();
+            if(!val) { alert("Vui lòng nhập Key!"); return; }
+            let res = await fetch(`${FIREBASE_URL}.json`);
+            let keys = await res.json() || {};
+            if (keys[val]) {
+                let kData = keys[val];
+                let h = typeof kData === 'object' ? kData.hours : kData;
+                let u = typeof kData === 'object' ? kData.uses : 999;
+                let ip = typeof kData === 'object' ? kData.device_ip : null;
+                let act = typeof kData === 'object' ? kData.activated_at : null;
+                let now = Date.now();
+
+                if (act && now > (act + (h * 3600000))) { alert("Key đã hết hạn!"); return; }
+                if (u <= 0) { alert("Key đã hết lượt!"); return; }
+                if (ip && ip !== clientIP) { alert("Key đang dùng ở thiết bị khác!"); return; }
+                if (!ip) { ip = clientIP; if (!act) act = now; }
+
+                u--;
+                keys[val] = { hours: h, uses: u, device_ip: ip, activated_at: act };
+                await fetch(`${FIREBASE_URL}.json`, { method: 'PUT', body: JSON.stringify(keys) });
+
+                localStorage.setItem('active_headlock_key', val);
+                currentActiveKey = val; currentExpireTime = act + (h * 3600000);
+                startCountdownDisplay();
+                document.getElementById('keyScreen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'flex';
+            } else { alert("Key không tồn tại!"); }
+        }
+
+        function startCountdownDisplay() {
+            if (countdownTimer) clearInterval(countdownTimer);
+            countdownTimer = setInterval(() => {
+                let left = currentExpireTime - Date.now();
+                if (left <= 0) { logout(); alert("Key hết hạn!"); return; }
+                let s = Math.floor(left / 1000);
+                document.getElementById('keyLabel').innerText = `KEY: ${currentActiveKey} | Còn: ${Math.floor(s/3600).toString().padStart(2,'0')}:${Math.floor((s%3600)/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+            }, 1000);
+        }
+
+        function logout() {
+            if (countdownTimer) clearInterval(countdownTimer);
+            localStorage.removeItem('active_headlock_key');
+            document.getElementById('mainApp').style.display = 'none';
+            document.getElementById('keyScreen').style.display = 'flex';
+            document.getElementById('keyInput').value = "";
+        }
+        function updateSensitivity(v) { document.getElementById('sensVal').innerText = v + "%"; }
+        function updateDpi(v) { document.getElementById('dpiVal').innerText = v; }
+        function triggerHackerEffect(e) {
+            if(e.checked) {
+                let m = document.getElementById('hackerModal'), c = document.getElementById('hackerConsole');
+                m.style.display = 'flex'; c.innerHTML = ""; let i = 0;
+                let t = setInterval(() => {
+                    c.innerHTML += `<div>> INJECTING... OK</div>`; c.scrollTop = c.scrollHeight; i++;
+                    if(i > 30) { clearInterval(t); setTimeout(() => m.style.display='none', 100); }
+                }, 5);
+            }
+        }
+        function clickOnButton() { setMainState(true); document.getElementById('gameModal').style.display = 'flex'; }
+        function setMainState(on) {
+            document.getElementById('btnOn').className = on ? 'toggle-btn active-on' : 'toggle-btn';
+            document.getElementById('btnOff').className = on ? 'toggle-btn' : 'toggle-btn active-off';
+        }
+        function closeGameModal() { document.getElementById('gameModal').style.display = 'none'; }
+        function launchGame(t) { closeGameModal(); window.location.href = t === 'freefire' ? "freefire://" : "freefiremax://"; }
+
+        const canvas = document.getElementById('matrixCanvas'), ctx = canvas.getContext('2d');
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        resize(); window.addEventListener('resize', resize);
+        const chars = '01', fontSize = 14, drops = Array(Math.floor(canvas.width / fontSize)).fill(1);
+        setInterval(() => {
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.08)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0f0'; ctx.font = fontSize + 'px monospace';
+            drops.forEach((y, i) => {
+                ctx.fillText(chars.charAt(Math.floor(Math.random() * chars.length)), i * fontSize, y * fontSize);
+                if (y * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            });
+        }, 33);
+    </script>
+</body>
+</html>
