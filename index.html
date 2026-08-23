@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HEADLOCK VIP</title>
+    <link rel="apple-touch-icon" href="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=">
+    <link rel="icon" href="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+        body { background-color: #050505; color: #ffffff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 20px 12px 60px 12px; overflow-x: hidden; position: relative; }
+        #matrixCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.15; pointer-events: none; }
+        
+        .ip-indicator { position: fixed; top: 12px; left: 12px; z-index: 999; background: rgba(18, 18, 24, 0.9); backdrop-filter: blur(8px); border: 1px solid rgba(34, 197, 94, 0.4); padding: 5px 10px; border-radius: 8px; font-size: 0.7rem; color: #22c55e; font-family: monospace; font-weight: bold; box-shadow: 0 0 10px rgba(34, 197, 94, 0.2); }
+
+        .app-content { position: relative; z-index: 2; width: 100%; max-width: 440px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+        .avatar-img { width: 75px; height: 75px; border-radius: 50%; object-fit: cover; background: #000; border: 2px solid #22c55e; box-shadow: 0 0 15px rgba(34, 197, 94, 0.4); }
+
+        /* MÀN HÌNH NHẬP KEY */
+        #keyScreen { width: 100%; margin-top: 60px; background: rgba(22, 22, 30, 0.92); backdrop-filter: blur(12px); border-radius: 20px; padding: 24px 20px; display: flex; flex-direction: column; align-items: center; gap: 14px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        #keyScreen h2 { font-size: 1.3rem; letter-spacing: 2px; color: #fff; }
+        .key-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.15); background: #121218; color: #fff; font-size: 0.95rem; text-align: center; outline: none; }
+        .key-btn { width: 100%; padding: 12px; border-radius: 10px; border: none; background: #22c55e; color: #fff; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(34,197,94,0.4); }
+
+        /* MÀN HÌNH CHÍNH */
+        #mainApp { display: none; width: 100%; flex-direction: column; align-items: center; gap: 14px; }
+        
+        .header { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 4px; margin-top: 5px; }
+        .title-box { text-align: center; }
+        .title-box h1 { font-size: 1.2rem; letter-spacing: 2px; }
+        .title-box span { font-size: 0.65rem; color: #22c55e; font-weight: bold; display: block; font-family: monospace; }
+        
+        .menu-card { width: 100%; background: rgba(22, 22, 30, 0.88); backdrop-filter: blur(12px); border-radius: 20px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
+        .menu-item { display: flex; justify-content: space-between; align-items: center; }
+        .item-left { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 0.85rem; }
+
+        .sens-card { width: 100%; background: rgba(22, 22, 30, 0.88); backdrop-filter: blur(12px); border-radius: 20px; padding: 14px 18px; border: 1px solid rgba(255, 255, 255, 0.08); display: flex; flex-direction: column; gap: 8px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
+        .sens-header { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 0.85rem; }
+        .sens-value { color: #22c55e; font-size: 0.9rem; font-family: monospace; }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]:focus { outline: none; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 7px; cursor: pointer; background: #121218; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.1); }
+        input[type=range]::-webkit-slider-thumb { height: 18px; width: 18px; border-radius: 50%; background: #22c55e; cursor: pointer; -webkit-appearance: none; margin-top: -6px; box-shadow: 0 0 10px rgba(34, 197, 94, 0.7); }
+
+        /* CÔNG TẮC GẠT ON/OFF */
+        .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #262633; transition: background-color 0.2s ease; border-radius: 34px; border: 1px solid rgba(255,255,255,0.05); }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 2px; background-color: #ffffff; transition: transform 0.2s ease; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        input:checked + .slider { background-color: #22c55e; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* THANH STARTS HEADLOCK VIP */
+        .bottom-section { width: 100%; text-align: center; }
+        .start-vip-btn { width: 100%; padding: 15px; border-radius: 28px; border: none; background: linear-gradient(90deg, #38bdf8, #2dd4bf); color: #0f172a; font-size: 0.95rem; font-weight: 900; letter-spacing: 1px; cursor: pointer; box-shadow: 0 4px 20px rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.1s ease; }
+        .start-vip-btn:active { transform: scale(0.98); }
+
+        .script-run-card { width: 100%; background: rgba(18, 18, 24, 0.92); backdrop-filter: blur(12px); border-radius: 16px; padding: 12px 14px; border: 1px solid rgba(59, 130, 246, 0.4); box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); display: flex; flex-direction: column; gap: 6px; }
+        .script-console { font-family: monospace; font-size: 0.7rem; color: #22c55e; height: 100px; overflow-y: hidden; display: flex; flex-direction: column; gap: 2px; word-break: break-all; }
+
+        /* REALTIME CHARTS SECTION */
+        .charts-section { width: 100%; display: flex; flex-direction: column; gap: 14px; }
+        .chart-card { width: 100%; background: #12151e; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 6px 25px rgba(0,0,0,0.6); }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem; font-weight: 700; color: #e2e8f0; }
+        .chart-pill-group { display: flex; background: #1a1f2c; border-radius: 18px; padding: 3px; border: 1px solid rgba(255,255,255,0.05); }
+        .chart-pill { padding: 5px 12px; border-radius: 14px; font-size: 0.75rem; font-weight: 600; border: none; background: transparent; color: #8a99ad; cursor: pointer; }
+        .chart-pill.active { background: #222b3d; color: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .chart-canvas-box { width: 100%; height: 90px; background: #0b0e14; border-radius: 12px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.03); }
+        .chart-canvas-box canvas { width: 100%; height: 100%; display: block; }
+        
+        .chart-footer-boxes { display: flex; gap: 10px; width: 100%; }
+        .mini-stat-box { flex: 1; background: #1a1f2c; border-radius: 14px; padding: 12px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 4px; }
+        .mini-stat-label { font-size: 0.7rem; color: #8a99ad; font-weight: 500; }
+        .mini-stat-val { font-size: 1rem; font-weight: 700; color: #ffffff; font-family: monospace; }
+
+        #hackerModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 200; justify-content: center; align-items: center; padding: 20px; }
+        .hacker-box { width: 100%; max-width: 400px; background: #000; border: 1.5px solid #22c55e; border-radius: 16px; padding: 18px; font-family: monospace; color: #22c55e; font-size: 0.8rem; height: 280px; overflow: hidden; box-shadow: 0 0 25px rgba(34, 197, 94, 0.4); word-break: break-all; }
+        #gameModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 300; backdrop-filter: blur(8px); justify-content: center; align-items: center; padding: 20px; }
+        .game-card { width: 100%; max-width: 360px; background: #16161e; border-radius: 20px; padding: 20px; border: 1px solid #38bdf8; text-align: center; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 0 30px rgba(56, 189, 248, 0.3); }
+        .game-btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; font-size: 0.95rem; color: #fff; cursor: pointer; }
+        .btn-ff-normal { background: linear-gradient(135deg, #f97316, #ef4444); }
+        .btn-ff-max { background: linear-gradient(135deg, #a855f7, #3b82f6); }
+    </style>
+</head>
+<body>
+    <canvas id="matrixCanvas"></canvas>
+    <div class="ip-indicator" id="ipDisplay">IP: Đang tải...</div>
+
+    <div class="app-content">
+        <!-- MÀN HÌNH NHẬP KEY -->
+        <div id="keyScreen">
+            <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=" class="avatar-img" alt="Avatar">
+            <h2>XÁC NHẬN KEY</h2>
+            <input type="text" id="keyInput" class="key-input" placeholder="Nhập Key của bạn...">
+            <button onclick="checkKey()" class="key-btn" id="btnCheckKey">XÁC NHẬN</button>
+        </div>
+
+        <!-- MÀN HÌNH CHÍNH (Đã sắp xếp đúng trật tự chuẩn) -->
+        <div id="mainApp">
+            <!-- 1. Thanh tiêu đề trên cùng -->
+            <div class="header">
+                <span style="color:#ef4444; font-size: 0.85rem; font-weight: bold; cursor: pointer;" onclick="logout()">🔒 Thoát</span>
+                <div class="title-box">
+                    <h1>HEADLOCK</h1>
+                    <span id="keyLabel">KEY: Đang cập nhật...</span>
+                </div>
+                <div style="font-size: 1.2rem;">⚙️</div>
+            </div>
+
+            <!-- 2. Avatar chính giữa ngay dưới tiêu đề -->
+            <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=" class="avatar-img" alt="Avatar">
+            
+            <!-- 3. Menu các tính năng bật/tắt -->
+            <div class="menu-card">
+                <div class="menu-item"><div class="item-left"><span style="color: #ef4444;">🎯</span> REG FILES</div><label class="switch"><input type="checkbox" id="sw1" onchange="toggleFeatureEngine('REG FILES', this)"><span class="slider"></span></label></div>
+                <div class="menu-item"><div class="item-left"><span style="color: #3b82f6;">🚀</span> BOOST RAM</div><label class="switch"><input type="checkbox" id="sw2" onchange="toggleFeatureEngine('BOOST RAM', this)"><span class="slider"></span></label></div>
+                <div class="menu-item"><div class="item-left"><span style="color: #a855f7;">💀</span> HEADLOCK</div><label class="switch"><input type="checkbox" id="sw3" onchange="toggleFeatureEngine('HEADLOCK', this)"><span class="slider"></span></label></div>
+                <div class="menu-item"><div class="item-left"><span style="color: #06b6d4;">⚙️</span> FIX RUNG</div><label class="switch"><input type="checkbox" id="sw4" onchange="toggleFeatureEngine('FIX RUNG', this)"><span class="slider"></span></label></div>
+                <div class="menu-item"><div class="item-left"><span style="color: #eab308;">🛡️</span> FIX LỐ (CHỐNG TRÔI)</div><label class="switch"><input type="checkbox" id="sw5" onchange="toggleFeatureEngine('FIX LỐ', this)"><span class="slider"></span></label></div>
+                <div class="menu-item"><div class="item-left"><span style="color: #10b981;">🔒</span> SENSILOCK</div><label class="switch"><input type="checkbox" id="sw6" onchange="toggleFeatureEngine('SENSILOCK', this)"><span class="slider"></span></label></div>
+                <div class="menu-item"><div class="item-left"><span style="color: #ec4899;">👑</span> LEGET PRO</div><label class="switch"><input type="checkbox" id="sw7" onchange="toggleFeatureEngine('LEGET PRO', this)"><span class="slider"></span></label></div>
+            </div>
+
+            <!-- 4. Thanh trượt Độ nhạy & DPI -->
+            <div class="sens-card">
+                <div class="sens-header"><span>⚡ ĐỘ NHẠY MÀN HÌNH</span><span class="sens-value" id="sensVal">0%</span></div>
+                <input type="range" id="sensSlider" min="0" max="100" value="0" oninput="updateSensitivity(this.value)">
+            </div>
+            <div class="sens-card">
+                <div class="sens-header"><span>🎯 ĐIỀU CHỈNH DPI</span><span class="sens-value" id="dpiVal">0</span></div>
+                <input type="range" id="dpiSlider" min="0" max="1000" value="0" oninput="updateDpi(this.value)">
+            </div>
+
+            <!-- 5. Biểu đồ Realtime Charts -->
+            <div class="charts-section">
+                <div style="font-size: 0.75rem; color: #8a99ad; font-weight: 800; letter-spacing: 1px; padding-left: 2px;">REALTIME CHARTS</div>
+                
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span>CPU Load <span id="cpuLoadVal" style="color: #22c55e; font-weight: normal; font-size: 0.85rem;">45%</span></span>
+                        <div class="chart-pill-group">
+                            <button class="chart-pill active">Estimate</button>
+                            <button class="chart-pill">Frame time</button>
+                        </div>
+                    </div>
+                    <div class="chart-canvas-box"><canvas id="cpuChartCanvas"></canvas></div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span>RAM Usage <span id="ramUsageVal" style="color: #3b82f6; font-weight: normal; font-size: 0.85rem;">58%</span></span>
+                        <div class="chart-pill-group">
+                            <button class="chart-pill">Source</button>
+                            <button class="chart-pill active">Auto</button>
+                        </div>
+                    </div>
+                    <div class="chart-canvas-box"><canvas id="ramChartCanvas"></canvas></div>
+                    <div class="chart-footer-boxes">
+                        <div class="mini-stat-box"><span class="mini-stat-label">JS Heap Used</span><span class="mini-stat-val" id="jsHeapUsed">11.0 MB</span></div>
+                        <div class="mini-stat-box"><span class="mini-stat-label">JS Heap Limit</span><span class="mini-stat-val">256 MB</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Nút Starts Headlock VIP -->
+            <div class="bottom-section">
+                <button class="start-vip-btn" onclick="openGameModal()">
+                    <span>⏻</span> STARTS HEADLOCK VIP 👑
+                </button>
+            </div>
+
+            <!-- 7. Script Run Console -->
+            <div class="script-run-card">
+                <div style="font-size: 0.75rem; font-weight: 800; color: #3b82f6; letter-spacing: 1px;">SCRIPT RUN</div>
+                <div class="script-console" id="scriptConsole"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="hackerModal"><div class="hacker-box" id="hackerConsole"></div></div>
+    
+    <div id="gameModal">
+        <div class="game-card">
+            <h2 style="color: #fff; font-size: 1.2rem;">CHỌN PHIÊN BẢN GAME</h2>
+            <button class="game-btn btn-ff-normal" onclick="launchGame('freefire')">🔥 FREE FIRE THƯỜNG</button>
+            <button class="game-btn btn-ff-max" onclick="launchGame('freefiremax')">⚡ FREE FIRE MAX</button>
+            <button onclick="closeGameModal()" style="background: transparent; border: none; color: #888; margin-top: 2px; cursor: pointer; font-size: 0.9rem;">Hủy bỏ</button>
+        </div>
+    </div>
+
+    <script>
+        const FIREBASE_URL = "https://headlock-df1ab-default-rtdb.firebaseio.com/keys";
+        let currentActiveKey = "", currentExpireTime = 0, countdownTimer = null, clientIP = "Đang tải...";
+        let activeEngineTasks = {};
+        let chartAnimationId = null;
+
+        async function fetchUserIP() {
+            try {
+                let res = await fetch('https://api.ipify.org?format=json');
+                let data = await res.json();
+                document.getElementById('ipDisplay').innerText = `IP: ${data.ip}`;
+                return data.ip;
+            } catch (e) {
+                let fallbackID = 'IP-' + Math.floor(Math.random() * 89999 + 10000);
+                document.getElementById('ipDisplay').innerText = `IP: ${fallbackID}`;
+                return fallbackID;
+            }
+        }
+        fetchUserIP().then(ip => { clientIP = ip; checkAutoLogin(); });
+
+        async function checkAutoLogin() {
+            let savedKey = localStorage.getItem('active_headlock_key');
+            if (!savedKey) return;
+            let res = await fetch(`${FIREBASE_URL}.json`);
+            let keys = await res.json() || {};
+            if (keys[savedKey]) {
+                let kData = keys[savedKey];
+                let h = typeof kData === 'object' ? kData.hours : kData;
+                let ip = typeof kData === 'object' ? kData.device_ip : null;
+                let act = typeof kData === 'object' ? kData.activated_at : null;
+                if (act && ip === clientIP && Date.now() <= (act + (h * 3600000))) {
+                    currentActiveKey = savedKey; currentExpireTime = act + (h * 3600000);
+                    startCountdownDisplay();
+                    document.getElementById('keyScreen').style.display = 'none';
+                    document.getElementById('mainApp').style.display = 'flex';
+                    resetAllSwitchesToOff();
+                    startAutoScriptConsole();
+                    initCharts();
+                }
+            }
+        }
+
+        async function checkKey() {
+            let val = document.getElementById('keyInput').value.trim().toUpperCase();
+            if(!val) { alert("Vui lòng nhập Key!"); return; }
+            let res = await fetch(`${FIREBASE_URL}.json`);
+            let keys = await res.json() || {};
+            if (keys[val]) {
+                let kData = keys[val];
+                let h = typeof kData === 'object' ? kData.hours : kData;
+                let u = typeof kData === 'object' ? kData.uses : 999;
+                let ip = typeof kData === 'object' ? kData.device_ip : null;
+                let act = typeof kData === 'object' ? kData.activated_at : null;
+                let now = Date.now();
+
+                if (act && now > (act + (h * 3600000))) { alert("Key đã hết hạn!"); return; }
+                if (u <= 0) { alert("Key đã hết lượt!"); return; }
+                if (ip && ip !== clientIP) { alert("Key đang dùng ở thiết bị khác!"); return; }
+                if (!ip) { ip = clientIP; if (!act) act = now; }
+
+                u--;
+                keys[val] = { hours: h, uses: u, device_ip: ip, activated_at: act };
+                await fetch(`${FIREBASE_URL}.json`, { method: 'PUT', body: JSON.stringify(keys) });
+
+                localStorage.setItem('active_headlock_key', val);
+                currentActiveKey = val; currentExpireTime = act + (h * 3600000);
+                startCountdownDisplay();
+                document.getElementById('keyScreen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'flex';
+                resetAllSwitchesToOff();
+                startAutoScriptConsole();
+                initCharts();
+            } else { alert("Key không tồn tại!"); }
+        }
+
+        function resetAllSwitchesToOff() {
+            for (let i = 1; i <= 7; i++) {
+                let sw = document.getElementById('sw' + i);
+                if (sw) sw.checked = false;
+            }
+            activeEngineTasks = {};
+        }
+
+        function toggleFeatureEngine(featureName, checkboxElem) {
+            let isEnabled = checkboxElem.checked;
+            triggerHackerEffect(checkboxElem, featureName);
+
+            if (isEnabled) {
+                activeEngineTasks[featureName] = setInterval(() => {
+                    let dummyBlock = new Array(1000).fill(Math.random());
+                    dummyBlock = null;
+                }, 1000);
+            } else {
+                if (activeEngineTasks[featureName]) {
+                    clearInterval(activeEngineTasks[featureName]);
+                    delete activeEngineTasks[featureName];
+                }
+            }
+        }
+
+        function initCharts() {
+            const cpuCanvas = document.getElementById('cpuChartCanvas');
+            const ramCanvas = document.getElementById('ramChartCanvas');
+            cpuCanvas.width = cpuCanvas.offsetWidth || 380;
+            cpuCanvas.height = cpuCanvas.offsetHeight || 90;
+            ramCanvas.width = ramCanvas.offsetWidth || 380;
+            ramCanvas.height = ramCanvas.offsetHeight || 90;
+
+            const cpuCtx = cpuCanvas.getContext('2d');
+            const ramCtx = ramCanvas.getContext('2d');
+
+            let cpuData = Array(35).fill(45);
+            let ramData = Array(35).fill(58);
+            let lastUpdate = 0;
+
+            function renderCharts(timestamp) {
+                if (timestamp - lastUpdate > 350) {
+                    lastUpdate = timestamp;
+                    let activeCount = Object.keys(activeEngineTasks).length;
+                    let dropFactor = activeCount * 2;
+
+                    let nextCpu = Math.max(12, Math.floor(Math.random() * 22) + 35 - dropFactor);
+                    cpuData.shift(); cpuData.push(nextCpu);
+                    document.getElementById('cpuLoadVal').innerText = nextCpu + "%";
+
+                    let nextRam = Math.max(20, Math.floor(Math.random() * 12) + 48 - dropFactor);
+                    ramData.shift(); ramData.push(nextRam);
+                    document.getElementById('ramUsageVal').innerText = nextRam + "%";
+                    document.getElementById('jsHeapUsed').innerText = (8 + (nextRam * 0.03)).toFixed(1) + " MB";
+                }
+
+                cpuCtx.clearRect(0, 0, cpuCanvas.width, cpuCanvas.height);
+                cpuCtx.strokeStyle = "#22c55e";
+                cpuCtx.lineWidth = 2;
+                cpuCtx.beginPath();
+                let cpuStepX = cpuCanvas.width / (cpuData.length - 1);
+                cpuData.forEach((val, index) => {
+                    let x = index * cpuStepX;
+                    let y = cpuCanvas.height - (val / 100) * cpuCanvas.height * 0.75 - 10;
+                    if(index === 0) cpuCtx.moveTo(x, y); else cpuCtx.lineTo(x, y);
+                });
+                cpuCtx.stroke();
+
+                ramCtx.clearRect(0, 0, ramCanvas.width, ramCanvas.height);
+                ramCtx.strokeStyle = "#3b82f6";
+                ramCtx.lineWidth = 2;
+                ramCtx.beginPath();
+                let ramStepX = ramCanvas.width / (ramData.length - 1);
+                ramData.forEach((val, index) => {
+                    let x = index * ramStepX;
+                    let y = ramCanvas.height - (val / 100) * ramCanvas.height * 0.75 - 10;
+                    if(index === 0) ramCtx.moveTo(x, y); else ramCtx.lineTo(x, y);
+                });
+                ramCtx.stroke();
+
+                chartAnimationId = requestAnimationFrame(renderCharts);
+            }
+
+            if (chartAnimationId) cancelAnimationFrame(chartAnimationId);
+            chartAnimationId = requestAnimationFrame(renderCharts);
+        }
+
+        function startAutoScriptConsole() {
+            let consoleDiv = document.getElementById('scriptConsole');
+            let commandsPool = [
+                "kernel_optimizer = active_threads_managed",
+                "cpu_frequency_scaler = stability_locked",
+                "background_garbage_collector = running",
+                "touch_sampling_filter = 500hz_active",
+                "network_buffer_cleaner = optimized"
+            ];
+            
+            setInterval(() => {
+                let randomCmd = commandsPool[Math.floor(Math.random() * commandsPool.length)];
+                let hexAddr = Math.floor(Math.random() * 899999 + 100000).toString(16).toUpperCase();
+                let line = document.createElement('div');
+                line.innerHTML = `> [0x${hexAddr}] ${randomCmd}`;
+                consoleDiv.appendChild(line);
+                if (consoleDiv.children.length > 6) {
+                    consoleDiv.removeChild(consoleDiv.children[0]);
+                }
+                consoleDiv.scrollTop = consoleDiv.scrollHeight;
+            }, 300);
+        }
+
+        function startCountdownDisplay() {
+            if (countdownTimer) clearInterval(countdownTimer);
+            countdownTimer = setInterval(() => {
+                let left = currentExpireTime - Date.now();
+                if (left <= 0) { logout(); alert("Key hết hạn!"); return; }
+                let s = Math.floor(left / 1000);
+                document.getElementById('keyLabel').innerText = `KEY: ${currentActiveKey} | Còn: ${Math.floor(s/3600).toString().padStart(2,'0')}:${Math.floor((s%3600)/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+            }, 1000);
+        }
+
+        function logout() {
+            if (countdownTimer) clearInterval(countdownTimer);
+            if (chartAnimationId) cancelAnimationFrame(chartAnimationId);
+            Object.keys(activeEngineTasks).forEach(k => clearInterval(activeEngineTasks[k]));
+            activeEngineTasks = {};
+
+            localStorage.removeItem('active_headlock_key');
+            document.getElementById('mainApp').style.display = 'none';
+            document.getElementById('keyScreen').style.display = 'flex';
+            document.getElementById('keyInput').value = "";
+        }
+        function updateSensitivity(v) { document.getElementById('sensVal').innerText = v + "%"; }
+        function updateDpi(v) { document.getElementById('dpiVal').innerText = v; }
+
+        function triggerHackerEffect(e, name) {
+            let m = document.getElementById('hackerModal'), c = document.getElementById('hackerConsole');
+            m.style.display = 'flex'; c.innerHTML = ""; let i = 0;
+            let statusText = e.checked ? "BACKGROUND ENGINE ACTIVATED & OPTIMIZING" : "ENGINE STOPPED & UNLOADED";
+            let featureCodes = [
+                `TARGET MODULE: [${name}]`,
+                `STATUS: ${statusText}`,
+                `EXECUTING LOW-LEVEL HOOKS...`,
+                `HARDWARE OPTIMIZED SUCCESS`
+            ];
+            let t = setInterval(() => {
+                let text = featureCodes[i % featureCodes.length];
+                let codeHex = Math.floor(Math.random() * 8999 + 1000);
+                c.innerHTML += `<div>> [0x${codeHex}] ${text}</div>`; 
+                c.scrollTop = c.scrollHeight; 
+                i++;
+                if(i > 4) { clearInterval(t); setTimeout(() => m.style.display='none', 100); }
+            }, 30);
+        }
+
+        function openGameModal() { document.getElementById('gameModal').style.display = 'flex'; }
+        function closeGameModal() { document.getElementById('gameModal').style.display = 'none'; }
+        function launchGame(t) { closeGameModal(); window.location.href = t === 'freefire' ? "freefire://" : "freefiremax://"; }
+
+        const canvas = document.getElementById('matrixCanvas'), ctx = canvas.getContext('2d');
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        resize(); window.addEventListener('resize', resize);
+        const chars = '01', fontSize = 14, drops = Array(Math.floor(canvas.width / fontSize)).fill(1);
+        
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.1)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0f0'; ctx.font = fontSize + 'px monospace';
+            drops.forEach((y, i) => {
+                ctx.fillText(chars.charAt(Math.floor(Math.random() * chars.length)), i * fontSize, y * fontSize);
+                if (y * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            });
+            requestAnimationFrame(drawMatrix);
+        }
+        requestAnimationFrame(drawMatrix);
+    </script>
+</body>
+</html>
