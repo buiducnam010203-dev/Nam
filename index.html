@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HEADLOCK VIP</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; touch-action: manipulation; }
+        body { background-color: #050505; color: #ffffff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 20px 12px 60px 12px; overflow-x: hidden; position: relative; }
+        #matrixCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.15; pointer-events: none; }
+
+        .ip-indicator { position: fixed; top: 12px; left: 12px; z-index: 999; background: rgba(18, 18, 24, 0.9); backdrop-filter: blur(8px); border: 1px solid rgba(168, 85, 247, 0.4); padding: 5px 10px; border-radius: 8px; font-size: 0.7rem; color: #a855f7; font-family: monospace; font-weight: bold; box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); }
+
+        .mini-music-widget { position: fixed; top: 12px; right: 12px; z-index: 999; background: rgba(18, 18, 24, 0.9); backdrop-filter: blur(8px); border: 1px solid rgba(168, 85, 247, 0.4); padding: 4px 8px; border-radius: 8px; display: flex; align-items: center; gap: 6px; box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); cursor: pointer; }
+        .mini-music-widget span { font-size: 0.65rem; color: #c084fc; font-weight: bold; font-family: monospace; max-width: 90px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .music-toggle-btn { background: #a855f7; border: none; border-radius: 6px; color: #fff; width: 22px; height: 22px; font-size: 0.65rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 0 8px rgba(168,85,247,0.6); }
+
+        .app-content { position: relative; z-index: 2; width: 100%; max-width: 440px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+        
+        .avatar-container { position: relative; width: 80px; height: 80px; margin: 0 auto; }
+        .avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #121218; border: 2px solid #a855f7; box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); display: block; }
+
+        #keyScreen { width: 100%; margin-top: 40px; background: rgba(22, 22, 30, 0.92); backdrop-filter: blur(12px); border-radius: 20px; padding: 24px 20px; display: flex; flex-direction: column; align-items: center; gap: 14px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        #keyScreen h2 { font-size: 1.3rem; letter-spacing: 2px; color: #fff; }
+        .key-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.15); background: #121218; color: #fff; font-size: 0.95rem; text-align: center; outline: none; }
+        .key-btn { width: 100%; padding: 12px; border-radius: 10px; border: none; background: #a855f7; color: #fff; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(168,85,247,0.4); }
+
+        #mainApp { display: none; width: 100%; flex-direction: column; align-items: center; gap: 14px; }
+        
+        .header { width: 100%; display: flex; justify-content: center; align-items: center; padding: 0 4px; margin-top: 5px; position: relative; }
+        .title-box { text-align: center; }
+        .title-box h1 { font-size: 1.2rem; letter-spacing: 2px; }
+        .title-box span { font-size: 0.65rem; color: #a855f7; font-weight: bold; display: block; font-family: monospace; }
+        
+        .page-container { width: 100%; display: none; flex-direction: column; gap: 14px; }
+        .page-container.active-page { display: flex; }
+
+        .nav-tabs { width: 100%; display: flex; background: rgba(22, 22, 30, 0.9); border-radius: 14px; padding: 4px; border: 1px solid rgba(255,255,255,0.08); gap: 3px; }
+        .nav-tab-btn { flex: 1; padding: 8px 2px; border-radius: 10px; border: none; background: transparent; color: #8a99ad; font-size: 0.60rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; text-align: center; }
+        .nav-tab-btn.active { background: #a855f7; color: #ffffff; box-shadow: 0 2px 10px rgba(168,85,247,0.4); }
+
+        .menu-card { width: 100%; background: rgba(22, 22, 30, 0.88); backdrop-filter: blur(12px); border-radius: 20px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
+        .menu-item { display: flex; justify-content: space-between; align-items: center; }
+        .item-left { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 0.8rem; }
+
+        .func-grid-container { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .func-card-item { background: rgba(22, 22, 30, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 18px; padding: 12px 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+        .func-card-info { display: flex; flex-direction: column; gap: 2px; overflow: hidden; padding-right: 4px; }
+        .func-card-title { font-size: 0.75rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .func-card-desc { font-size: 0.6rem; color: #8a99ad; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .sens-card { width: 100%; background: rgba(22, 22, 30, 0.88); backdrop-filter: blur(12px); border-radius: 20px; padding: 14px 18px; border: 1px solid rgba(255, 255, 255, 0.08); display: flex; flex-direction: column; gap: 8px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
+        .sens-header { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 0.85rem; }
+        .sens-value { color: #a855f7; font-size: 0.9rem; font-family: monospace; }
+        
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; padding: 6px 0; cursor: pointer; }
+        input[type=range]:focus { outline: none; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; cursor: pointer; background: #121218; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.1); }
+        input[type=range]::-webkit-slider-thumb { height: 22px; width: 22px; border-radius: 50%; background: #a855f7; cursor: pointer; -webkit-appearance: none; margin-top: -8px; box-shadow: 0 0 12px rgba(168, 85, 247, 0.8); }
+
+        .switch { position: relative; display: inline-block; width: 40px; height: 22px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider-switch { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #262633; transition: background-color 0.2s ease; border-radius: 34px; border: 1px solid rgba(255,255,255,0.05); }
+        .slider-switch:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: #ffffff; transition: transform 0.2s ease; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        input:checked + .slider-switch { background-color: #a855f7; }
+        input:checked + .slider-switch:before { transform: translateX(18px); }
+
+        .info-card { width: 100%; background: rgba(22, 22, 30, 0.88); backdrop-filter: blur(12px); border-radius: 20px; padding: 18px; border: 1px solid rgba(255, 255, 255, 0.08); display: flex; flex-direction: column; gap: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
+        .info-title { font-size: 0.85rem; font-weight: 800; color: #a855f7; letter-spacing: 1px; margin-bottom: 2px; }
+        .info-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; padding: 6px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: #8a99ad; font-weight: 500; }
+        .info-val { color: #ffffff; font-weight: 700; font-family: monospace; }
+        
+        .logout-btn { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.15); color: #ef4444; font-size: 0.95rem; font-weight: 800; letter-spacing: 1px; cursor: pointer; }
+
+        .script-run-card { width: 100%; background: rgba(18, 18, 24, 0.92); backdrop-filter: blur(12px); border-radius: 16px; padding: 12px 14px; border: 1px solid rgba(168, 85, 247, 0.4); box-shadow: 0 0 20px rgba(168, 85, 247, 0.2); display: flex; flex-direction: column; gap: 6px; }
+        .script-console { font-family: monospace; font-size: 0.7rem; color: #c084fc; height: 90px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; word-break: break-all; }
+
+        .function-inject-box { width: 100%; background: rgba(22, 22, 30, 0.95); backdrop-filter: blur(16px); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .inject-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; font-weight: 600; color: #8a99ad; }
+        .inject-percent { color: #c084fc; font-weight: 800; font-size: 0.95rem; font-family: monospace; }
+        .inject-progress-bg { width: 100%; height: 8px; background: rgba(18, 18, 24, 0.8); border-radius: 10px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .inject-progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #c084fc, #a855f7); border-radius: 10px; transition: width 0.08s ease; box-shadow: 0 0 10px rgba(168,85,247,0.8); }
+        .inject-btn { width: 100%; padding: 14px; border-radius: 16px; border: none; background: #c084fc; color: #000; font-weight: 800; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 20px rgba(192,132,252,0.4); display: flex; justify-content: center; align-items: center; gap: 8px; transition: all 0.2s ease; }
+        .inject-btn:active { transform: scale(0.98); }
+
+        #functionContentUnlocked { display: none; flex-direction: column; gap: 14px; width: 100%; }
+
+        .analysis-box { width: 100%; background: rgba(18, 18, 24, 0.95); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 14px; padding: 14px; display: none; flex-direction: column; gap: 8px; font-family: monospace; font-size: 0.75rem; color: #d8b4fe; }
+        .analysis-row { display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255, 255, 255, 0.08); padding-bottom: 4px; }
+        .analysis-row span:last-child { color: #fff; font-weight: bold; }
+
+        .category-tab-container { display: flex; gap: 6px; margin-top: 4px; }
+        .cat-tab-btn { flex: 1; background: #121218; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 9px 4px; color: #8a99ad; font-size: 0.72rem; font-weight: 700; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .cat-tab-btn.active { background: #a855f7; color: #fff; border-color: #a855f7; box-shadow: 0 0 10px rgba(168,85,247,0.4); }
+
+        .iphone-model-list-box { display: none; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; max-height: 140px; overflow-y: auto; padding-right: 2px; }
+        .iphone-model-list-box.active-list { display: grid; }
+        
+        .ip-model-btn { background: #121218; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 7px 4px; color: #8a99ad; font-size: 0.68rem; font-weight: 700; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .ip-model-btn.active { background: #c084fc; color: #000; border-color: #c084fc; font-weight: 800; box-shadow: 0 0 8px rgba(192,132,252,0.6); }
+
+        .fix-checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+        .fix-check-label { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; font-weight: 700; background: #121218; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); cursor: pointer; }
+        .fix-check-label input { accent-color: #a855f7; width: 14px; height: 14px; cursor: pointer; }
+        
+        .analyze-btn { width: 100%; padding: 11px; border-radius: 10px; border: none; background: linear-gradient(90deg, #c084fc, #a855f7); color: #fff; font-weight: 800; font-size: 0.82rem; cursor: pointer; box-shadow: 0 4px 15px rgba(168,85,247,0.4); margin-top: 4px; }
+
+        .progress-container { width: 100%; background: #121218; border: 1px solid rgba(168,85,247,0.3); border-radius: 12px; padding: 12px; display: none; flex-direction: column; gap: 8px; margin-top: 4px; }
+        .progress-info { display: flex; justify-content: space-between; font-size: 0.75rem; font-family: monospace; color: #c084fc; font-weight: bold; }
+        .progress-bar-bg { width: 100%; height: 8px; background: #1c1c27; border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+        .progress-bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #c084fc, #a855f7); border-radius: 6px; transition: width 0.05s linear; box-shadow: 0 0 10px rgba(168,85,247,0.8); }
+
+        #hackerModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 200; justify-content: center; align-items: center; padding: 20px; }
+        .hacker-box { width: 100%; max-width: 400px; background: #000; border: 1.5px solid #a855f7; border-radius: 16px; padding: 18px; font-family: monospace; color: #a855f7; font-size: 0.8rem; height: 280px; overflow: hidden; box-shadow: 0 0 25px rgba(168, 85, 247, 0.4); word-break: break-all; }
+    </style>
+</head>
+<body onclick="unlockAudioOnFirstInteraction()">
+
+    <canvas id="matrixCanvas"></canvas>
+    <div class="ip-indicator" id="ipDisplay">IP: Đang tải...</div>
+
+    <!-- Widget Nhạc góc trên bên phải -->
+    <div class="mini-music-widget" onclick="toggleBackgroundMusic(event)">
+        <span id="musicTitleDisplay">🎵 Phát Nhạc</span>
+        <button class="music-toggle-btn" id="musicToggleBtn">▶</button>
+    </div>
+
+    <div class="app-content">
+        <!-- MÀN HÌNH NHẬP KEY -->
+        <div id="keyScreen">
+            <div class="avatar-container">
+                <img src="avatar.jpg" class="avatar-img" alt="Avatar">
+            </div>
+            <h2>XÁC NHẬN KEY</h2>
+            <input type="text" id="keyInput" class="key-input" placeholder="Nhập Key của bạn...">
+            <button onclick="checkKey()" class="key-btn">XÁC NHẬN</button>
+        </div>
+
+        <!-- MÀN HÌNH CHÍNH -->
+        <div id="mainApp">
+            <div class="header">
+                <div class="title-box">
+                    <h1>HEADLOCK VIP</h1>
+                    <span id="keyLabel">KEY: Đang cập nhật...</span>
+                </div>
+            </div>
+
+            <div class="avatar-container">
+                <img src="avatar.jpg" class="avatar-img" alt="Avatar">
+            </div>
+
+            <!-- THANH ĐIỀU HƯỚNG 5 TAB -->
+            <div class="nav-tabs">
+                <button class="nav-tab-btn active" onclick="switchPage('tab1', this)">🎮 TÍNH NĂNG</button>
+                <button class="nav-tab-btn" onclick="switchPage('tabFunc', this)">⚙️ FUNCTION</button>
+                <button class="nav-tab-btn" onclick="switchPage('tab2', this)">📱 ĐỘ NHẠY</button>
+                <button class="nav-tab-btn" onclick="switchPage('tab3', this)">⚡ BOOSTER</button>
+                <button class="nav-tab-btn" onclick="switchPage('tab4', this)">ℹ️ INFO</button>
+            </div>
+            
+            <!-- TRANG 1: TÍNH NĂNG -->
+            <div id="tab1" class="page-container active-page">
+                <div class="menu-card">
+                    <div class="menu-item"><div class="item-left"><span style="color: #ef4444;">🎯</span> REG FILES</div><label class="switch"><input type="checkbox" id="sw1" onchange="toggleFeatureEngine('REG FILES', this)"><span class="slider-switch"></span></label></div>
+                    <div class="menu-item"><div class="item-left"><span style="color: #3b82f6;">🚀</span> BOOST RAM</div><label class="switch"><input type="checkbox" id="sw2" onchange="toggleFeatureEngine('BOOST RAM', this)"><span class="slider-switch"></span></label></div>
+                    <div class="menu-item"><div class="item-left"><span style="color: #a855f7;">💀</span> HEADLOCK</div><label class="switch"><input type="checkbox" id="sw3" onchange="toggleFeatureEngine('HEADLOCK', this)"><span class="slider-switch"></span></label></div>
+                    <div class="menu-item"><div class="item-left"><span style="color: #06b6d4;">⚙️</span> FIX RUNG</div><label class="switch"><input type="checkbox" id="sw4" onchange="toggleFeatureEngine('FIX RUNG', this)"><span class="slider-switch"></span></label></div>
+                    <div class="menu-item"><div class="item-left"><span style="color: #eab308;">🛡️</span> FIX LỐ (CHỐNG TRÔI)</div><label class="switch"><input type="checkbox" id="sw5" onchange="toggleFeatureEngine('FIX LỐ', this)"><span class="slider-switch"></span></label></div>
+                    <div class="menu-item"><div class="item-left"><span style="color: #c084fc;">🔒</span> SENSILOCK</div><label class="switch"><input type="checkbox" id="sw6" onchange="toggleFeatureEngine('SENSILOCK', this)"><span class="slider-switch"></span></label></div>
+                    <div class="menu-item"><div class="item-left"><span style="color: #ec4899;">👑</span> LEGET PRO</div><label class="switch"><input type="checkbox" id="sw7" onchange="toggleFeatureEngine('LEGET PRO', this)"><span class="slider-switch"></span></label></div>
+                </div>
+
+                <div class="sens-card">
+                    <div class="sens-header"><span>⚡ ĐỘ NHẠY MÀN HÌNH</span><span class="sens-value" id="sensVal">0%</span></div>
+                    <input type="range" id="sensSlider" min="0" max="100" value="0" oninput="updateSensitivity(this.value)">
+                </div>
+                <div class="sens-card">
+                    <div class="sens-header"><span>🎯 ĐIỀU CHỈNH DPI</span><span class="sens-value" id="dpiVal">0</span></div>
+                    <input type="range" id="dpiSlider" min="0" max="1000" value="0" oninput="updateDpi(this.value)">
+                </div>
+
+                <div class="script-run-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.75rem; font-weight: 800; color: #a855f7; letter-spacing: 1px;">>_ SCRIPT RUN CONSOLE (LIVE)</span>
+                        <span style="font-size: 0.7rem; color: #8a99ad; cursor: pointer;" onclick="clearConsole('scriptConsole')">🗑️ Xoá</span>
+                    </div>
+                    <div class="script-console" id="scriptConsole"></div>
+                </div>
+            </div>
+
+            <!-- TRANG FUNCTION -->
+            <div id="tabFunc" class="page-container">
+                <div class="function-inject-box" id="functionInjectContainer">
+                    <div class="info-title">🔒 YÊU CẦU TIÊM DỮ LIỆU</div>
+                    <div style="font-size: 0.76rem; color: #8a99ad; line-height: 1.4;">Bạn cần thực hiện quét và tiêm dữ liệu game Free Fire bên ngoài trước khi có thể mở khóa và bật các chức năng nâng cao.</div>
+                    
+                    <div class="inject-header">
+                        <span>Tiến trình quét & Tiêm Free Fire</span>
+                        <span class="inject-percent" id="injectPercentText">0%</span>
+                    </div>
+                    <div class="inject-progress-bg">
+                        <div class="inject-progress-fill" id="injectProgressFill"></div>
+                    </div>
+                    <button class="inject-btn" id="injectBtn" onclick="startDataInjection()">
+                        <span>⚡</span> TIÊM DỮ LIỆU (QUÉT FREE FIRE)
+                    </button>
+                </div>
+
+                <div id="functionContentUnlocked">
+                    <div style="display: flex; gap: 10px; margin-bottom: 2px;">
+                        <button onclick="setAllFunctionToggles(true)" style="flex:1; padding:12px; border-radius:16px; border:1px solid rgba(168,85,247,0.4); background:rgba(168,85,247,0.15); color:#c084fc; font-weight:700; font-size:0.78rem; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:6px;"><span>🎛️</span> Bật tất cả</button>
+                        <button onclick="setAllFunctionToggles(false)" style="flex:1; padding:12px; border-radius:16px; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.15); color:#ef4444; font-weight:700; font-size:0.78rem; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:6px;"><span>✖️</span> Tắt tất cả</button>
+                    </div>
+
+                    <div style="font-size: 0.8rem; font-weight: 800; color: #a855f7; letter-spacing: 1.5px; display: flex; align-items: center; gap: 6px; margin: 4px 0 2px 2px;">
+                        <span>🎯</span> CHỨC NĂNG
+                    </div>
+
+                    <div class="func-grid-container">
+                        <div class="func-card-item">
+                            <div class="func-card-info">
+                                <div class="func-card-title"><span style="color: #a855f7;">🎯</span> AimLock</div>
+                                <div class="func-card-desc">Khóa tâm tự động</div>
+                            </div>
+                            <label class="switch"><input type="checkbox" class="func-sw" onchange="toggleFeatureEngine('AimLock', this)"><span class="slider-switch"></span></label>
+                        </div>
+                        <div class="func-card-item">
+                            <div class="func-card-info">
+                                <div class="func-card-title"><span style="color: #3b82f6;">〰️</span> Fix Rung</div>
+                                <div class="func-card-desc">Chống rung tay</div>
+                            </div>
+                            <label class="switch"><input type="checkbox" class="func-sw" onchange="toggleFeatureEngine('Fix Rung', this)"><span class="slider-switch"></span></label>
+                        </div>
+                        <div class="func-card-item">
+                            <div class="func-card-info">
+                                <div class="func-card-title"><span style="color: #c084fc;">🔍</span> Fix Lạc Đạn</div>
+                                <div class="func-card-desc">Chỉnh đường đạn</div>
+                            </div>
+                            <label class="switch"><input type="checkbox" class="func-sw" onchange="toggleFeatureEngine('Fix Lạc Đạn', this)"><span class="slider-switch"></span></label>
+                        </div>
+                        <div class="func-card-item">
+                            <div class="func-card-info">
+                                <div class="func-card-title"><span style="color: #eab308;">🎯</span> Ghim Tâm</div>
+                                <div class="func-card-desc">Tâm chắc khi bắn</div>
+                            </div>
+                            <label class="switch"><input type="checkbox" class="func-sw" onchange="toggleFeatureEngine('Ghim Tâm', this)"><span class="slider-switch"></span></label>
+                        </div>
+                        <div class="func-card-item">
+                            <div class="func-card-info">
+                                <div class="func-card-title"><span style="color: #ef4444;">🎯</span> Auto Head...</div>
+                                <div class="func-card-desc">Ưu tiên đầu</div>
+                            </div>
+                            <label class="switch"><input type="checkbox" class="func-sw" onchange="toggleFeatureEngine('Auto Headshot', this)"><span class="slider-switch"></span></label>
+                        </div>
+                        <div class="func-card-item">
+                            <div class="func-card-info">
+                                <div class="func-card-title"><span style="color: #06b6d4;">🛡️</span> No Recoil</div>
+                                <div class="func-card-desc">Giảm giật súng</div>
+                            </div>
+                            <label class="switch"><input type="checkbox" class="func-sw" onchange="toggleFeatureEngine('No Recoil', this)"><span class="slider-switch"></span></label>
+                        </div>
+                        <div class="func-card-item">
+                            <div class="func-card-info">
+                                <div class="func-card-title"><span style="color: #ec4899;">👁️</span> Silent Aim</div>
+                                <div class="func-card-desc">Ngắm ẩn</div>
+                            </div>
+                            <label class="switch"><input type="checkbox" class="func-sw" onchange="toggleFeatureEngine('Silent Aim', this)"><span class="slider-switch"></span></label>
+                        </div>
+                        <div class="func-card-item">
+                            <div class="func-card-info">
+                                <div class="func-card-title"><span style="color: #22c55e;">🔧</span> Fix Lỗi</div>
+                                <div class="func-card-desc">Sửa lỗi game</div>
+                            </div>
+                            <label class="switch"><input type="checkbox" class="func-sw" onchange="toggleFeatureEngine('Fix Lỗi', this)"><span class="slider-switch"></span></label>
+                        </div>
+                        <div class="func-card-item">
+                            <div class="func-card-info">
+                                <div class="func-card-title"><span style="color: #3b82f6;">⏱️</span> Fix Lag</div>
+                                <div class="func-card-desc">Giảm giật hình</div>
+                            </div>
+                            <label class="switch"><input type="checkbox" class="func-sw" onchange="toggleFeatureEngine('Fix Lag', this)"><span class="slider-switch"></span></label>
+                        </div>
+                        <div class="func-card-item">
+                            <div class="func-card-info">
+                                <div class="func-card-title"><span style="color: #c084fc;">🪶</span> Nhẹ Tâm</div>
+                                <div class="func-card-desc">Kéo tâm nhẹ</div>
+                            </div>
+                            <label class="switch"><input type="checkbox" class="func-sw" onchange="toggleFeatureEngine('Nhẹ Tâm', this)"><span class="slider-switch"></span></label>
+                        </div>
+                        <div class="func-card-item">
+                            <div class="func-card-info">
+                                <div class="func-card-title"><span style="color: #eab308;">🚀</span> Mượt Máy</div>
+                                <div class="func-card-desc">Tối ưu FPS</div>
+                            </div>
+                            <label class="switch"><input type="checkbox" class="func-sw" onchange="toggleFeatureEngine('Mượt Máy', this)"><span class="slider-switch"></span></label>
+                        </div>
+                        <div class="func-card-item">
+                            <div class="func-card-info">
+                                <div class="func-card-title"><span style="color: #06b6d4;">🌐</span> Fix Ping</div>
+                                <div class="func-card-desc">Ổn định mạng</div>
+                            </div>
+                            <label class="switch"><input type="checkbox" class="func-sw" onchange="toggleFeatureEngine('Fix Ping', this)"><span class="slider-switch"></span></label>
+                        </div>
+                        <div class="func-card-item">
+                            <div class="func-card-info">
+                                <div class="func-card-title"><span style="color: #ef4444;">⚡</span> Fast Run</div>
+                                <div class="func-card-desc">Chạy nhanh hơn</div>
+                            </div>
+                            <label class="switch"><input type="checkbox" class="func-sw" onchange="toggleFeatureEngine('Fast Run', this)"><span class="slider-switch"></span></label>
+                        </div>
+                        <div class="func-card-item">
+                            <div class="func-card-info">
+                                <div class="func-card-title"><span style="color: #22c55e;">🔄</span> Auto Reload</div>
+                                <div class="func-card-desc">Nạp đạn tự động</div>
+                            </div>
+                            <label class="switch"><input type="checkbox" class="func-sw" onchange="toggleFeatureEngine('Auto Reload', this)"><span class="slider-switch"></span></label>
+                        </div>
+                        <div class="func-card-item">
+                            <div class="func-card-info">
+                                <div class="func-card-title"><span style="color: #a855f7;">🛡️</span> Anti Ban</div>
+                                <div class="func-card-desc">Bảo vệ tài khoản</div>
+                            </div>
+                            <label class="switch"><input type="checkbox" class="func-sw" onchange="toggleFeatureEngine('Anti Ban', this)"><span class="slider-switch"></span></label>
+                        </div>
+                        <div class="func-card-item">
+                            <div class="func-card-info">
+                                <div class="func-card-title"><span style="color: #8a99ad;">🕶️</span> Ẩn Danh</div>
+                                <div class="func-card-desc">Ẩn thông tin máy</div>
+                            </div>
+                            <label class="switch"><input type="checkbox" class="func-sw" onchange="toggleFeatureEngine('Ẩn Danh', this)"><span class="slider-switch"></span></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TRANG 2: ĐỘ NHẠY -->
+            <div id="tab2" class="page-container">
+                <div class="menu-card">
+                    <div class="info-title">📱 CHỌN PHÂN KHÚC & DÒNG IPHONE</div>
+                    <div style="font-size: 0.74rem; color: #8a99ad;">Chọn nhóm phân khúc và bấm chọn chính xác đời máy iPhone từ iPhone 6 đến iPhone 17 Pro Max của bạn:</div>
+                    
+                    <div class="category-tab-container">
+                        <button class="cat-tab-btn active" onclick="switchIphoneCategory('regular', this)">📱 Thường</button>
+                        <button class="cat-tab-btn" onclick="switchIphoneCategory('pro', this)">🔥 Pro</button>
+                        <button class="cat-tab-btn" onclick="switchIphoneCategory('promax', this)">👑 Pro Max</button>
+                    </div>
+
+                    <div id="listRegular" class="iphone-model-list-box active-list">
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 6', this)">iPhone 6</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 6s', this)">iPhone 6s</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 7', this)">iPhone 7</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 8', this)">iPhone 8</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone X', this)">iPhone X</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone XR', this)">iPhone XR</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 11', this)">iPhone 11</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 12', this)">iPhone 12</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 13', this)">iPhone 13</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 14', this)">iPhone 14</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 15', this)">iPhone 15</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 16', this)">iPhone 16</div>
+                        <div class="ip-model-btn active" onclick="selectSpecificModel('iPhone 17', this)">iPhone 17</div>
+                    </div>
+
+                    <div id="listPro" class="iphone-model-list-box">
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 11 Pro', this)">11 Pro</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 12 Pro', this)">12 Pro</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 13 Pro', this)">13 Pro</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 14 Pro', this)">14 Pro</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 15 Pro', this)">15 Pro</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 16 Pro', this)">16 Pro</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 17 Pro', this)">17 Pro</div>
+                    </div>
+
+                    <div id="listProMax" class="iphone-model-list-box">
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 11 Pro Max', this)">11 Pro Max</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 12 Pro Max', this)">12 Pro Max</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 13 Pro Max', this)">13 Pro Max</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 14 Pro Max', this)">14 Pro Max</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 15 Pro Max', this)">15 Pro Max</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 16 Pro Max', this)">16 Pro Max</div>
+                        <div class="ip-model-btn" onclick="selectSpecificModel('iPhone 17 Pro Max', this)">17 Pro Max</div>
+                    </div>
+
+                    <div class="info-title" style="margin-top: 8px;">🛠️ CHỌN LỖI ĐỘ NHẠY</div>
+                    <div class="fix-checkbox-grid">
+                        <label class="fix-check-label"><input type="checkbox" id="errFixLo" value="fixlo"> 🛡️ Fix Lố</label>
+                        <label class="fix-check-label"><input type="checkbox" id="errFixRung" value="fixrung"> ⚙️ Fix Rung</label>
+                        <label class="fix-check-label"><input type="checkbox" id="errHeadlock" value="headlock"> 🎯 Bám Đầu</label>
+                        <label class="fix-check-label"><input type="checkbox" id="errSmooth" value="smooth"> 🧊 Mượt Mà</label>
+                        <label class="fix-check-label"><input type="checkbox" id="errNheTam" value="nhetam"> 🪶 Nhẹ Tâm</label>
+                        <label class="fix-check-label"><input type="checkbox" id="errTracking" value="tracking"> ⚡ Chuyên Lia</label>
+                    </div>
+
+                    <button class="analyze-btn" id="scanBtn" onclick="runSmartAnalysisFromDatabase()">🔍 CHECK ĐỘ NHẠY & TÌM THÔNG SỐ</button>
+
+                    <div class="progress-container" id="progressContainer">
+                        <div class="progress-info">
+                            <span id="progressText">Đang check độ nhạy...</span>
+                            <span id="progressPercent">1%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="progressBarFill"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analysis-box" id="smartAnalysisBox">
+                    <div style="font-weight: bold; color: #c084fc; margin-bottom: 2px;">📊 KẾT QUẢ ĐỘ NHẠY TỐI ƯU:</div>
+                    <div class="analysis-row"><span>Thuật toán:</span><span id="anaStatus">Chưa phân tích</span></div>
+                    <div class="analysis-row"><span>Nhìn Xung Quanh:</span><span id="anaGeneral">--</span></div>
+                    <div class="analysis-row"><span>Red Dot:</span><span id="anaRedDot">--</span></div>
+                    <div class="analysis-row"><span>2X / 4X:</span><span id="anaScopes">--</span></div>
+                    <div class="analysis-row"><span>AWM:</span><span id="anaAwm">--</span></div>
+                    <div class="analysis-row"><span>Nút Bắn:</span><span id="anaButton">--</span></div>
+                </div>
+
+                <div class="script-run-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.75rem; font-weight: 800; color: #a855f7; letter-spacing: 1px;">>_ SENSILOCK LOG</span>
+                        <span style="font-size: 0.70rem; color: #8a99ad; cursor: pointer;" onclick="clearConsole('sensConsole')">🗑️ Xoá</span>
+                    </div>
+                    <div class="script-console" id="sensConsole"></div>
+                </div>
+            </div>
+
+            <!-- TRANG 3: BOOSTER -->
+            <div id="tab3" class="page-container">
+                <div class="menu-card">
+                    <div class="info-title" style="margin-bottom: 4px;">⚡ BẢNG TỐI ƯU & BOOSTER</div>
+                    <div class="menu-item"><div class="item-left"><span style="color: #22c55e;">🚀</span> FPS UNLOCKER</div><label class="switch"><input type="checkbox" id="b1" onchange="toggleFeatureEngine('FPS UNLOCKER', this)"><span class="slider-switch"></span></label></div>
+                    <div class="menu-item"><div class="item-left"><span style="color: #3b82f6;">🧊</span> COOLING CPU</div><label class="switch"><input type="checkbox" id="b2" onchange="toggleFeatureEngine('COOLING CPU', this)"><span class="slider-switch"></span></label></div>
+                    <div class="menu-item"><div class="item-left"><span style="color: #eab308;">⚡</span> TOUCH BOOST</div><label class="switch"><input type="checkbox" id="b3" onchange="toggleFeatureEngine('TOUCH BOOST', this)"><span class="slider-switch"></span></label></div>
+                </div>
+
+                <div class="sens-card">
+                    <div class="sens-header"><span>🎮 TỐC ĐỘ LÀM MỚI (HZ)</span><span class="sens-value" id="hzVal">60Hz</span></div>
+                    <input type="range" id="hzSlider" min="60" max="144" step="12" value="60" oninput="updateHz(this.value)">
+                </div>
+            </div>
+
+            <!-- TRANG 4: INFO -->
+            <div id="tab4" class="page-container">
+                <div class="info-card">
+                    <div class="info-title">ℹ️ THÔNG TIN HỆ THỐNG</div>
+                    <div class="info-row"><span class="info-label">Tên App</span><span class="info-val">HEADLOCK VIP</span></div>
+                    <div class="info-row"><span class="info-label">Trạng thái</span><span class="info-val" style="color: #a855f7;">Hoạt động ổn định</span></div>
+                    <div class="info-row"><span class="info-label">Key đang dùng</span><span class="info-val" id="infoKeyVal">Đang cập nhật...</span></div>
+                    <div class="info-row"><span class="info-label">Loại gói Key</span><span class="info-val" id="infoKeyTypeVal" style="color: #c084fc;">Đang cập nhật...</span></div>
+                    <div class="info-row"><span class="info-label">Trạng thái quét FF</span><span class="info-val" id="infoInjectStatus" style="color: #ef4444;">Chưa quét (Đã khóa Function)</span></div>
+                </div>
+
+                <div class="bottom-section" style="margin-top: 10px;">
+                    <button class="logout-btn" onclick="logout()">🔓 ĐĂNG XUẤT KEY</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="hackerModal"><div class="hacker-box" id="hackerConsole"></div></div>
+
+    <script>
+        const FIREBASE_URL = "https://headlock-df1ab-default-rtdb.firebaseio.com/keys";
+        let currentActiveKey = "", currentExpireTime = 0, countdownTimer = null, clientIP = "Đang tải...";
+        let activeEngineTasks = {};
+        let hackerLoopTimer = null;
+        let systemSensDatabase = []; 
+        let selectedIphoneModelName = 'iPhone 17';
+        let isInjecting = false;
+        let isGameInjected = false;
+        let musicInitialized = false;
+
+        // Khởi tạo Audio trực tiếp qua đối tượng Javascript sạch 100%
+        let bgAudio = new Audio('https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf756.mp3?filename=lofi-study-112191.mp3');
+        bgAudio.loop = true;
+        bgAudio.volume = 1.0;
+        let isPlayingMusic = false;
+
+        // Tự động mở khóa âm thanh ngay lần chạm đầu tiên bất kỳ đâu trên màn hình
+        function unlockAudioOnFirstInteraction() {
+            if (musicInitialized) return;
+            bgAudio.play().then(() => {
+                musicInitialized = true;
+                isPlayingMusic = true;
+                document.getElementById('musicToggleBtn').innerText = "⏸";
+                document.getElementById('musicTitleDisplay').innerText = "🎵 Đang phát";
+            }).catch(e => {
+                console.log("Trình duyệt chờ thêm tương tác:", e);
+            });
+        }
+
+        function toggleBackgroundMusic(event) {
+            if (event) event.stopPropagation();
+            let toggleBtn = document.getElementById('musicToggleBtn');
+            let titleDisplay = document.getElementById('musicTitleDisplay');
+
+            if (!isPlayingMusic) {
+                bgAudio.play().then(() => {
+                    isPlayingMusic = true;
+                    musicInitialized = true;
+                    toggleBtn.innerText = "⏸";
+                    titleDisplay.innerText = "🎵 Đang phát";
+                }).catch(e => {
+                    console.log("Lỗi phát nhạc:", e);
+                    alert("Trình duyệt đang chặn âm thanh tự động. Hãy bấm tăng âm lượng bên cạnh điện thoại hoặc bấm nút Phát Nhạc lần nữa!");
+                });
+            } else {
+                bgAudio.pause();
+                isPlayingMusic = false;
+                toggleBtn.innerText = "▶";
+                titleDisplay.innerText = "🎵 Đã tắt";
+            }
+        }
+
+        function initSensDatabase() {
+            let styles = ["Cận Chiến Cực Tốc", "Tầm Xa Ổn Định", "Chống Rung Chuyên Sâu", "Bám Đầu Gắt", "Mượt Mà Mọi Máy"];
+            systemSensDatabase = [];
+            for (let i = 1; i <= 2000; i++) {
+                systemSensDatabase.push({
+                    id: i,
+                    name: styles[(i - 1) % styles.length],
+                    general: 165 + (i % 35),
+                    redDot: 160 + (i % 38),
+                    scope2: 155 + (i % 40),
+                    scope4: 150 + (i % 42),
+                    awm: 90 + (i % 30),
+                    button: (38 + (i % 18)) + "%"
+                });
+            }
+        }
+        initSensDatabase();
+
+        function startDataInjection() {
+            if (isInjecting) return;
+            isInjecting = true;
+
+            let btn = document.getElementById('injectBtn');
+            let percentText = document.getElementById('injectPercentText');
+            let progressFill = document.getElementById('injectProgressFill');
+
+            btn.disabled = true;
+            btn.style.opacity = 0.8;
+            btn.innerHTML = `<span>⏳</span> Đang tiêm...`;
+
+            let currentProgress = 1;
+            progressFill.style.width = '1%';
+            percentText.innerText = '1%';
+
+            let injectInterval = setInterval(() => {
+                currentProgress += Math.floor(Math.random() * 5) + 2;
+
+                if (currentProgress >= 100) {
+                    currentProgress = 100;
+                    clearInterval(injectInterval);
+
+                    progressFill.style.width = '100%';
+                    percentText.innerText = '100%';
+
+                    setTimeout(() => {
+                        isInjecting = false;
+                        isGameInjected = true;
+
+                        document.getElementById('functionInjectContainer').style.display = 'none';
+                        document.getElementById('functionContentUnlocked').style.display = 'flex';
+
+                        let infoStatus = document.getElementById('infoInjectStatus');
+                        if (infoStatus) {
+                            infoStatus.innerText = "Đã quét & Mở khóa (Active)";
+                            infoStatus.style.color = "#22c55e";
+                        }
+
+                        logToConsole('scriptConsole', "FREE FIRE HOOKED & SCANNED SUCCESSFULLY. FUNCTION UNLOCKED.");
+                    }, 300);
+                } else {
+                    progressFill.style.width = currentProgress + '%';
+                    percentText.innerText = currentProgress + '%';
+                }
+            }, 35);
+        }
+
+        function switchIphoneCategory(categoryType, btnElement) {
+            document.querySelectorAll('.cat-tab-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            document.querySelectorAll('.iphone-model-list-box').forEach(box => box.classList.remove('active-list'));
+            if (categoryType === 'regular') {
+                document.getElementById('listRegular').classList.add('active-list');
+            } else if (categoryType === 'pro') {
+                document.getElementById('listPro').classList.add('active-list');
+            } else if (categoryType === 'promax') {
+                document.getElementById('listProMax').classList.add('active-list');
+            }
+        }
+
+        function selectSpecificModel(modelName, btnElement) {
+            let parentBox = btnElement.parentElement;
+            parentBox.querySelectorAll('.ip-model-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+            selectedIphoneModelName = modelName;
+            logToConsole('sensConsole', `Đã chọn dòng máy tối ưu: [${modelName}]`);
+        }
+
+        function switchPage(pageId, btnElement) {
+            document.querySelectorAll('.page-container').forEach(page => {
+                page.classList.remove('active-page');
+            });
+            document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active-page');
+            btnElement.classList.add('active');
+        }
+
+        async function fetchUserIP() {
+            try {
+                let res = await fetch('https://api.ipify.org?format=json');
+                let data = await res.json();
+                document.getElementById('ipDisplay').innerText = `IP: ${data.ip}`;
+                return data.ip;
+            } catch (e) {
+                let fallbackID = 'IP-' + Math.floor(Math.random() * 89999 + 10000);
+                document.getElementById('ipDisplay').innerText = `IP: ${fallbackID}`;
+                return fallbackID;
+            }
+        }
+        fetchUserIP().then(ip => { clientIP = ip; checkAutoLogin(); });
+
+        async function checkAutoLogin() {
+            let savedKey = localStorage.getItem('active_headlock_key');
+            if (!savedKey) return;
+            let res = await fetch(`${FIREBASE_URL}.json`);
+            let keys = await res.json() || {};
+            if (keys[savedKey]) {
+                let kData = keys[savedKey];
+                let durationMs = kData.durationMs || (kData.hours * 3600000);
+                let ip = kData.device_ip;
+                let act = kData.activated_at;
+                let isPermanent = kData.isPermanent || false;
+                let isValid = isPermanent || (act && ip === clientIP && Date.now() <= (act + durationMs));
+
+                if (isValid) {
+                    currentActiveKey = savedKey; 
+                    currentExpireTime = isPermanent ? 0 : (act + durationMs);
+                    startCountdownDisplay();
+                    updateInfoKeyDisplay(savedKey, kData);
+                    document.getElementById('keyScreen').style.display = 'none';
+                    document.getElementById('mainApp').style.display = 'flex';
+                    resetAllStatesToDefault();
+                }
+            }
+        }
+
+        async function checkKey() {
+            let val = document.getElementById('keyInput').value.trim().toUpperCase();
+            if(!val) { alert("Vui lòng nhập Key!"); return; }
+            let res = await fetch(`${FIREBASE_URL}.json`);
+            let keys = await res.json() || {};
+            if (keys[val]) {
+                let kData = keys[val];
+                let isPermanent = kData.isPermanent || false;
+                let durationMs = kData.durationMs || (kData.hours * 3600000);
+                let ip = kData.device_ip;
+                let act = kData.activated_at;
+                let now = Date.now();
+
+                if (!isPermanent && act && now > (act + durationMs)) { alert("Key đã hết hạn!"); return; }
+                if (ip && ip !== clientIP) { alert("Key đang dùng ở thiết bị khác!"); return; }
+                if (!ip) { ip = clientIP; if (!act) act = now; }
+
+                kData.device_ip = ip;
+                kData.activated_at = act;
+                keys[val] = kData;
+                await fetch(`${FIREBASE_URL}.json`, { method: 'PUT', body: JSON.stringify(keys) });
+
+                localStorage.setItem('active_headlock_key', val);
+                currentActiveKey = val; 
+                currentExpireTime = isPermanent ? 0 : (act + durationMs);
+                startCountdownDisplay();
+                updateInfoKeyDisplay(val, kData);
+                document.getElementById('keyScreen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'flex';
+                resetAllStatesToDefault();
+            } else { alert("Key không tồn tại!"); }
+        }
+
+        function updateInfoKeyDisplay(keyStr, kData) {
+            if (!keyStr) return;
+            let maskedKey = keyStr.length > 6 ? keyStr.substring(0, 4) + '****' + keyStr.substring(keyStr.length - 2) : keyStr;
+            let infoEl = document.getElementById('infoKeyVal');
+            if (infoEl) infoEl.innerText = maskedKey;
+
+            let typeEl = document.getElementById('infoKeyTypeVal');
+            if (typeEl && kData) {
+                if (kData.isPermanent) {
+                    typeEl.innerText = "Key Vĩnh Viễn 👑";
+                } else {
+                    let totalMs = kData.durationMs || (kData.hours ? kData.hours * 3600000 : 0);
+                    let totalMinutes = Math.round(totalMs / 60000);
+                    if (totalMinutes < 60) {
+                        typeEl.innerText = `Key ${totalMinutes} phút`;
+                    } else if (totalMinutes < 1440) {
+                        let hours = (totalMinutes / 60).toFixed(1).replace('.0', '');
+                        typeEl.innerText = `Key ${hours} giờ`;
+                    } else {
+                        let days = Math.round(totalMinutes / 1440);
+                        typeEl.innerText = `Key ${days} ngày`;
+                    }
+                }
+            }
+        }
+
+        function resetAllStatesToDefault() {
+            for (let i = 1; i <= 7; i++) {
+                let sw = document.getElementById('sw' + i);
+                if (sw) sw.checked = false;
+            }
+            document.querySelectorAll('.func-sw').forEach(sw => sw.checked = false);
+            document.getElementById('sensSlider').value = 0;
+            updateSensitivity(0);
+            document.getElementById('dpiSlider').value = 0;
+            updateDpi(0);
+            activeEngineTasks = {};
+            let scriptC = document.getElementById('scriptConsole');
+            if (scriptC) scriptC.innerHTML = "";
+            let sensC = document.getElementById('sensConsole');
+            if (sensC) sensC.innerHTML = "";
+            startHackerConsoleLoop();
+        }
+
+        function getTimestampString() {
+            let d = new Date();
+            let hh = String(d.getHours()).padStart(2, '0');
+            let mm = String(d.getMinutes()).padStart(2, '0');
+            let ss = String(d.getSeconds()).padStart(2, '0');
+            return `[${hh}:${mm}:${ss}]`;
+        }
+
+        function logToConsole(consoleId, message) {
+            let consoleDiv = document.getElementById(consoleId);
+            if(!consoleDiv) return;
+            let line = document.createElement('div');
+            line.innerText = `${getTimestampString()} ${message}`;
+            consoleDiv.appendChild(line);
+            if (consoleDiv.children.length > 25) {
+                consoleDiv.removeChild(consoleDiv.children[0]);
+            }
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        function clearConsole(consoleId) {
+            document.getElementById(consoleId).innerHTML = "";
+        }
+
+        function startHackerConsoleLoop() {
+            if (hackerLoopTimer) clearInterval(hackerLoopTimer);
+            let hackerActions = [
+                "BYPASSING SECURE MEMORY LAYER...",
+                "HOOKING TOUCH_LISTENER_POLL...",
+                "INJECTING REGISTRY OFFSETS [0x7AF2]...",
+                "OPTIMIZING THREAD PRIORITY: REALTIME",
+                "SENSILOCK SYNC: STABLE (99.8%)"
+            ];
+            hackerLoopTimer = setInterval(() => {
+                let randomMsg = hackerActions[Math.floor(Math.random() * hackerActions.length)];
+                let randomHex = Math.floor(Math.random() * 8999 + 1000);
+                logToConsole('scriptConsole', `[0x${randomHex}] ${randomMsg}`);
+            }, 1200);
+        }
+
+        function runSmartAnalysisFromDatabase() {
+            let fixLo = document.getElementById('errFixLo').checked;
+            let fixRung = document.getElementById('errFixRung').checked;
+            let headlock = document.getElementById('errHeadlock').checked;
+            let smooth = document.getElementById('errSmooth').checked;
+            let nheTam = document.getElementById('errNheTam').checked;
+            let tracking = document.getElementById('errTracking').checked;
+
+            if (!fixLo && !fixRung && !headlock && !smooth && !nheTam && !tracking) {
+                alert("Vui lòng chọn ít nhất một lỗi cần fix trong bảng!");
+                return;
+            }
+
+            let scanBtn = document.getElementById('scanBtn');
+            let progressContainer = document.getElementById('progressContainer');
+            let progressBarFill = document.getElementById('progressBarFill');
+            let progressPercent = document.getElementById('progressPercent');
+            let analysisBox = document.getElementById('smartAnalysisBox');
+
+            scanBtn.disabled = true;
+            scanBtn.style.opacity = 0.6;
+            progressContainer.style.display = 'flex';
+            analysisBox.style.display = 'none';
+
+            logToConsole('sensConsole', `Bắt đầu check độ nhạy cho [${selectedIphoneModelName}]...`);
+
+            let currentPercent = 1;
+            progressBarFill.style.width = '1%';
+            progressPercent.innerText = '1%';
+
+            let progressInterval = setInterval(() => {
+                currentPercent += Math.floor(Math.random() * 6) + 2; 
+                if (currentPercent >= 100) {
+                    currentPercent = 100;
+                    clearInterval(progressInterval);
+
+                    setTimeout(() => {
+                        progressContainer.style.display = 'none';
+                        scanBtn.disabled = false;
+                        scanBtn.style.opacity = 1;
+
+                        let matchedConfig = systemSensDatabase[Math.floor(Math.random() * systemSensDatabase.length)];
+                        let modelBonus = selectedIphoneModelName.includes('Pro Max') ? 1.05 : 1.0;
+
+                        let finalGen = Math.min(200, Math.round(matchedConfig.general * modelBonus));
+                        let finalRed = Math.min(200, Math.round(matchedConfig.redDot * modelBonus));
+                        let finalSc2 = Math.min(200, Math.round(matchedConfig.scope2));
+                        let finalSc4 = Math.min(200, Math.round(matchedConfig.scope4));
+
+                        document.getElementById('anaStatus').innerText = `${selectedIphoneModelName} - Chuẩn OB45`;
+                        document.getElementById('anaGeneral').innerText = finalGen;
+                        document.getElementById('anaRedDot').innerText = finalRed;
+                        document.getElementById('anaScopes').innerText = `${finalSc2} / ${finalSc4}`;
+                        document.getElementById('anaAwm').innerText = matchedConfig.awm;
+                        document.getElementById('anaButton').innerText = matchedConfig.button;
+
+                        analysisBox.style.display = 'flex';
+                        logToConsole('sensConsole', `HOÀN TẤT CHECK CHO ${selectedIphoneModelName.toUpperCase()} -> G: ${finalGen} | Red: ${finalRed}`);
+                    }, 300);
+                }
+                progressBarFill.style.width = currentPercent + '%';
+                progressPercent.innerText = currentPercent + '%';
+            }, 30);
+        }
+
+        function setAllFunctionToggles(state) {
+            document.querySelectorAll('.func-sw').forEach(sw => {
+                sw.checked = state;
+            });
+            logToConsole('scriptConsole', state ? "Đã bật tất cả các tính năng trong FUNCTION." : "Đã tắt tất cả các tính năng trong FUNCTION.");
+        }
+
+        function toggleFeatureEngine(featureName, checkboxElem) {
+            let isEnabled = checkboxElem.checked;
+            triggerHackerEffect(checkboxElem, featureName);
+            let targetConsole = 'scriptConsole';
+
+            if (isEnabled) {
+                logToConsole(targetConsole, `${featureName}: Đã bật & Khởi chạy code hook`);
+            } else {
+                logToConsole(targetConsole, `${featureName}: Đã tắt & Hủy tiến trình`);
+            }
+        }
+
+        function startCountdownDisplay() {
+            if (countdownTimer) clearInterval(countdownTimer);
+            if (currentExpireTime === 0) {
+                document.getElementById('keyLabel').innerText = `KEY: ${currentActiveKey} | VĨNH VIỄN 👑`;
+                return;
+            }
+            countdownTimer = setInterval(() => {
+                let left = currentExpireTime - Date.now();
+                if (left <= 0) { logout(); alert("Key hết hạn!"); return; }
+                let s = Math.floor(left / 1000);
+                document.getElementById('keyLabel').innerText = `KEY: ${currentActiveKey} | Còn: ${Math.floor(s/3600).toString().padStart(2,'0')}:${Math.floor((s%3600)/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+            }, 1000);
+        }
+
+        function logout() {
+            if (countdownTimer) clearInterval(countdownTimer);
+            if (hackerLoopTimer) clearInterval(hackerLoopTimer);
+            localStorage.removeItem('active_headlock_key');
+            document.getElementById('mainApp').style.display = 'none';
+            document.getElementById('keyScreen').style.display = 'flex';
+            document.getElementById('keyInput').value = "";
+        }
+
+        function updateSensitivity(v) { document.getElementById('sensVal').innerText = v + "%"; }
+        function updateDpi(v) { document.getElementById('dpiVal').innerText = v; }
+        function updateHz(v) { document.getElementById('hzVal').innerText = v + "Hz"; }
+
+        function triggerHackerEffect(e, name) {
+            let m = document.getElementById('hackerModal'), c = document.getElementById('hackerConsole');
+            m.style.display = 'flex'; c.innerHTML = ""; let i = 0;
+            let statusText = e.checked ? "BACKGROUND ENGINE ACTIVATED" : "ENGINE STOPPED";
+            let featureCodes = [
+                `TARGET MODULE: [${name}]`,
+                `STATUS: ${statusText}`,
+                `EXECUTING LOW-LEVEL HOOKS...`,
+                `HARDWARE OPTIMIZED SUCCESS`
+            ];
+            let t = setInterval(() => {
+                let text = featureCodes[i % featureCodes.length];
+                let codeHex = Math.floor(Math.random() * 8999 + 1000);
+                c.innerHTML += `<div>> [0x${codeHex}] ${text}</div>`; 
+                c.scrollTop = c.scrollHeight; 
+                i++;
+                if(i > 4) { clearInterval(t); setTimeout(() => m.style.display='none', 80); }
+            }, 25);
+        }
+
+        const canvas = document.getElementById('matrixCanvas'), ctx = canvas.getContext('2d');
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        resize(); window.addEventListener('resize', resize);
+        const chars = '01', fontSize = 14, drops = Array(Math.floor(canvas.width / fontSize)).fill(1);
+        
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.1)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#a855f7'; ctx.font = fontSize + 'px monospace';
+            drops.forEach((y, i) => {
+                ctx.fillText(chars.charAt(Math.floor(Math.random() * chars.length)), i * fontSize, y * fontSize);
+                if (y * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            });
+            requestAnimationFrame(drawMatrix);
+        }
+        requestAnimationFrame(drawMatrix);
+    </script>
+</body>
+</html>
