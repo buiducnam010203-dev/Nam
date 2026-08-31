@@ -5,8 +5,12 @@ package.domain = org.headlock
 source.dir = .
 source.include_exts = py,html,png,jpg,css,js
 version = 1.0.0
-requirements = python3,kivy,pyobjus
+requirements = python3,kivy
 orientation = portrait
 fullscreen = 0
 supported.platforms = ios
 ios.codesign.allowed = false
+
+[buildozer]
+log_level = 2
+target = ios
