@@ -1,41 +1,40 @@
 name: Build Headlock VIP iOS IPA
 
 on:
-  push:
-    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
-  build:
+  build-ios:
     runs-on: macos-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Install Dependencies
+      - name: Install System Dependencies
         run: |
-          brew install autoconf automake libtool pkg-config
+          brew install autoconf automake libtool pkg-config git
+
+      - name: Install kivy-ios and Cython
+        run: |
           pip install --upgrade pip
-          pip install Cython==0.29.36 buildozer
+          pip install Cython==0.29.36
+          pip install git+https://github.com/kivy/kivy-ios.git
 
-      - name: Run Buildozer iOS
+      - name: Create Xcode Project using kivy-ios
         run: |
-          # Buildozer trên macOS sẽ cố gắng khởi tạo môi trường Xcode/Kivy-iOS
-          buildozer -v ios debug || true
+          # Khởi tạo chuỗi toolchain cho iOS
+          toolchain create headlockvip .
 
-      - name: Find and Move IPA/App
+      - name: Build Python Dependencies for iOS
         run: |
-          mkdir -p output_ipa
-          find bin/ -name "*.ipa" -exec cp {} output_ipa/ \; || true
-          find . -name "*.ipa" -exec cp {} output_ipa/ \; || true
+          cd headlockvip
+          toolchain build python3 kivy
 
-      - name: Upload IPA Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: headlock-vip-ipa
-          path: output_ipa/*.ipa
+      - name: Check Project Output
+        run: |
+          ls -la headlockvip/
