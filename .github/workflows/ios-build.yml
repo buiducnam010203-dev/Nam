@@ -33,6 +33,15 @@ jobs:
         run: |
           toolchain create headlockvip .
 
-      - name: Check Project Output
+      - name: List Directory to Verify
         run: |
-          ls -la headlockvip/
+          ls -la
+          ls -la headlockvip/ || ls -la *-ios/ || true
+
+      - name: Archive Xcode Project
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcode-project-output
+          path: |
+            headlockvip/
+            *-ios/
