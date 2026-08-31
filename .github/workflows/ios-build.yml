@@ -25,15 +25,13 @@ jobs:
           pip install Cython==0.29.36
           pip install git+https://github.com/kivy/kivy-ios.git
 
-      - name: Create Xcode Project using kivy-ios
+      - name: Build Python and Kivy for iOS
         run: |
-          # Khởi tạo chuỗi toolchain cho iOS
-          toolchain create headlockvip .
-
-      - name: Build Python Dependencies for iOS
-        run: |
-          cd headlockvip
           toolchain build python3 kivy
+
+      - name: Create Xcode Project
+        run: |
+          toolchain create headlockvip .
 
       - name: Check Project Output
         run: |
