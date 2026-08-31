@@ -3,6 +3,7 @@ name: Build Headlock VIP iOS IPA
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build:
