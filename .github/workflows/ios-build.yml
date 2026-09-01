@@ -31,13 +31,11 @@ jobs:
 
       - name: Create Xcode Project Safely
         run: |
-          # Xóa thư mục cũ nếu có để tránh xung đột
           rm -rf headlockvip
           toolchain create headlockvip .
 
       - name: Compile and Package IPA
         run: |
-          # Tìm đúng thư mục chứa file xcodeproj được sinh ra
           XCODE_PROJ=$(find . -maxdepth 2 -name "*.xcodeproj" | head -n 1)
           if [ -z "$XCODE_PROJ" ]; then
             echo "Error: Không tìm thấy file xcodeproj nào!"
@@ -52,15 +50,13 @@ jobs:
           
           cd "$PROJECT_DIR"
           
-          # Tiến hành biên dịch bằng xcodebuild cho giả lập iOS (tránh lỗi khóa chứng chỉ)
-          xcodebuild -project "$PROJECT_NAME.xcodeproj" -scheme "$PROJECT_NAME" -configuration Release -sdk iphonesimulator CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO build
+          # Biên dịch với cờ ONLY_ACTIVE_ARCH=NO để loại bỏ hoàn toàn lỗi exit code 65
+          xcodebuild -project "$PROJECT_NAME.xcodeproj" -scheme "$PROJECT_NAME" -configuration Release -sdk iphonesimulator CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ONLY_ACTIVE_ARCH=NO build
           
-          # Đóng gói file .app thành .ipa
           mkdir -p Payload
           cp -R "build/Release-iphonesimulator/$PROJECT_NAME.app" Payload/
           zip -r "$PROJECT_NAME.ipa" Payload/
           
-          # Chuyển file IPA hoàn chỉnh về thư mục gốc để lưu trữ artifact
           mv "$PROJECT_NAME.ipa" ../headlockvip.ipa
 
       - name: Upload IPA Artifact
