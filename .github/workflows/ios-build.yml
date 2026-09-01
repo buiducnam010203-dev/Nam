@@ -34,31 +34,38 @@ jobs:
           rm -rf headlockvip
           toolchain create headlockvip .
 
-      - name: Direct Package IPA (No XcodeBuild)
+      - name: Compile and Package IPA Properly
         run: |
-          # Tìm thư mục dự án được sinh ra
           XCODE_PROJ=$(find . -maxdepth 2 -name "*.xcodeproj" | head -n 1)
+          if [ -z "$XCODE_PROJ" ]; then
+            echo "Lỗi: Không tìm thấy file xcodeproj!"
+            exit 1
+          fi
+          
           PROJECT_DIR=$(dirname "$XCODE_PROJ")
           PROJECT_NAME=$(basename "$XCODE_PROJ" .xcodeproj)
           
           cd "$PROJECT_DIR"
           
-          # Sử dụng toolchain build trực tiếp app bundle thay vì gọi xcodebuild thô
-          toolchain build "$PROJECT_NAME" || true
+          # Biên dịch trực tiếp target ứng dụng qua toolchain
+          toolchain build "$PROJECT_NAME"
           
-          # Tạo thư mục Payload và nén trực tiếp cấu trúc có sẵn
+          # Đóng gói chuẩn xác thư mục .app thành file ipa có dung lượng đầy đủ
           mkdir -p Payload
           if [ -d "build/libs/$PROJECT_NAME" ]; then
             cp -R "build/libs/$PROJECT_NAME" Payload/
+          elif [ -d "build/Release-iphoneos/$PROJECT_NAME.app" ]; then
+            cp -R "build/Release-iphoneos/$PROJECT_NAME.app" Payload/
           elif [ -d "build" ]; then
             cp -R build/*.app Payload/ 2>/dev/null || true
           fi
           
-          # Nếu không tìm thấy app được build sẵn, gom cấu trúc project thành tệp nén
+          # Dự phòng tìm kiếm toàn cục nếu cấu trúc thư mục thay đổi
           if [ ! "$(ls -A Payload)" ]; then
-            echo "Đóng gói mã nguồn thay thế..."
-            mkdir -p Payload/$PROJECT_NAME.app
-            cp -R *.py Payload/$PROJECT_NAME.app/ 2>/dev/null || true
+            APP_FOUND=$(find . -name "*.app" | head -n 1)
+            if [ -n "$APP_FOUND" ]; then
+              cp -R "$APP_FOUND" Payload/
+            fi
           fi
           
           zip -r "$PROJECT_NAME.ipa" Payload/
