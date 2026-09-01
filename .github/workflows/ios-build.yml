@@ -29,23 +29,42 @@ jobs:
         run: |
           toolchain build python3 kivy
 
-      - name: Create Xcode Project
+      - name: Create Xcode Project Safely
         run: |
+          # Xóa thư mục cũ nếu có để tránh xung đột
+          rm -rf headlockvip
           toolchain create headlockvip .
 
-      - name: Compile Xcode Project to IPA
+      - name: Compile and Package IPA
         run: |
-          cd headlockvip
-          # Mở và build project Xcode dưới dạng không cần chứng chỉ (Unsigned/Debug cho Simulator hoặc Archive)
-          xcodebuild -project headlockvip.xcodeproj -scheme headlockvip -configuration Release -sdk iphonesimulator CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO build
+          # Tìm đúng thư mục chứa file xcodeproj được sinh ra
+          XCODE_PROJ=$(find . -maxdepth 2 -name "*.xcodeproj" | head -n 1)
+          if [ -z "$XCODE_PROJ" ]; then
+            echo "Error: Không tìm thấy file xcodeproj nào!"
+            exit 1
+          fi
           
-          # Gom file app thành thư mục Payload để nén thành .ipa
+          PROJECT_DIR=$(dirname "$XCODE_PROJ")
+          PROJECT_NAME=$(basename "$XCODE_PROJ" .xcodeproj)
+          
+          echo "Thư mục dự án: $PROJECT_DIR"
+          echo "Tên dự án: $PROJECT_NAME"
+          
+          cd "$PROJECT_DIR"
+          
+          # Tiến hành biên dịch bằng xcodebuild cho giả lập iOS (tránh lỗi khóa chứng chỉ)
+          xcodebuild -project "$PROJECT_NAME.xcodeproj" -scheme "$PROJECT_NAME" -configuration Release -sdk iphonesimulator CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO build
+          
+          # Đóng gói file .app thành .ipa
           mkdir -p Payload
-          cp -R build/Release-iphonesimulator/headlockvip.app Payload/
-          zip -r headlockvip.ipa Payload/
+          cp -R "build/Release-iphonesimulator/$PROJECT_NAME.app" Payload/
+          zip -r "$PROJECT_NAME.ipa" Payload/
+          
+          # Chuyển file IPA hoàn chỉnh về thư mục gốc để lưu trữ artifact
+          mv "$PROJECT_NAME.ipa" ../headlockvip.ipa
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
           name: headlockvip-ipa
-          path: headlockvip/headlockvip.ipa
+          path: headlockvip.ipa
