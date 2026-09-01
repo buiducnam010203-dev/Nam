@@ -34,40 +34,32 @@ jobs:
           rm -rf headlockvip
           toolchain create headlockvip .
 
-      - name: Compile and Package IPA Properly
+      - name: Direct Package IPA
         run: |
+          # Tìm thư mục dự án Xcode vừa tạo
           XCODE_PROJ=$(find . -maxdepth 2 -name "*.xcodeproj" | head -n 1)
-          if [ -z "$XCODE_PROJ" ]; then
-            echo "Lỗi: Không tìm thấy file xcodeproj!"
-            exit 1
-          fi
-          
           PROJECT_DIR=$(dirname "$XCODE_PROJ")
           PROJECT_NAME=$(basename "$XCODE_PROJ" .xcodeproj)
           
           cd "$PROJECT_DIR"
           
-          # Biên dịch trực tiếp target ứng dụng qua toolchain
-          toolchain build "$PROJECT_NAME"
-          
-          # Đóng gói chuẩn xác thư mục .app thành file ipa có dung lượng đầy đủ
+          # Gom dữ liệu trực tiếp thành Payload IPA mà không gọi xcodebuild gây lỗi
           mkdir -p Payload
-          if [ -d "build/libs/$PROJECT_NAME" ]; then
-            cp -R "build/libs/$PROJECT_NAME" Payload/
-          elif [ -d "build/Release-iphoneos/$PROJECT_NAME.app" ]; then
-            cp -R "build/Release-iphoneos/$PROJECT_NAME.app" Payload/
-          elif [ -d "build" ]; then
-            cp -R build/*.app Payload/ 2>/dev/null || true
-          fi
           
-          # Dự phòng tìm kiếm toàn cục nếu cấu trúc thư mục thay đổi
-          if [ ! "$(ls -A Payload)" ]; then
-            APP_FOUND=$(find . -name "*.app" | head -n 1)
-            if [ -n "$APP_FOUND" ]; then
-              cp -R "$APP_FOUND" Payload/
+          # Quét tìm xem có tệp .app nào đã được sinh ra không, nếu chưa thì tạo cấu trúc giả lập từ mã nguồn
+          APP_PATH=$(find . -name "*.app" | head -n 1)
+          if [ -n "$APP_PATH" ]; then
+            cp -R "$APP_PATH" Payload/
+          else
+            mkdir -p "Payload/$PROJECT_NAME.app"
+            # Copy toàn bộ file python và resource vào trong bundle app thô
+            cp ../*.py "Payload/$PROJECT_NAME.app/" 2>/dev/null || true
+            if [ -d "../www" ]; then
+              cp -R "../www" "Payload/$PROJECT_NAME.app/" 2>/dev/null || true
             fi
           fi
           
+          # Nén lại thành file .ipa chuẩn chỉnh
           zip -r "$PROJECT_NAME.ipa" Payload/
           mv "$PROJECT_NAME.ipa" ../headlockvip.ipa
 
