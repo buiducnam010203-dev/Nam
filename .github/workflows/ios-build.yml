@@ -33,15 +33,19 @@ jobs:
         run: |
           toolchain create headlockvip .
 
-      - name: List Directory to Verify
+      - name: Compile Xcode Project to IPA
         run: |
-          ls -la
-          ls -la headlockvip/ || ls -la *-ios/ || true
+          cd headlockvip
+          # Mở và build project Xcode dưới dạng không cần chứng chỉ (Unsigned/Debug cho Simulator hoặc Archive)
+          xcodebuild -project headlockvip.xcodeproj -scheme headlockvip -configuration Release -sdk iphonesimulator CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO build
+          
+          # Gom file app thành thư mục Payload để nén thành .ipa
+          mkdir -p Payload
+          cp -R build/Release-iphonesimulator/headlockvip.app Payload/
+          zip -r headlockvip.ipa Payload/
 
-      - name: Archive Xcode Project
+      - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: xcode-project-output
-          path: |
-            headlockvip/
-            *-ios/
+          name: headlockvip-ipa
+          path: headlockvip/headlockvip.ipa
