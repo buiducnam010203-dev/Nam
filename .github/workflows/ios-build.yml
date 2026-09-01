@@ -38,23 +38,21 @@ jobs:
         run: |
           XCODE_PROJ=$(find . -maxdepth 2 -name "*.xcodeproj" | head -n 1)
           if [ -z "$XCODE_PROJ" ]; then
-            echo "Error: Không tìm thấy file xcodeproj nào!"
+            echo "Error: Không tìm thấy file xcodeproj!"
             exit 1
           fi
           
           PROJECT_DIR=$(dirname "$XCODE_PROJ")
           PROJECT_NAME=$(basename "$XCODE_PROJ" .xcodeproj)
           
-          echo "Thư mục dự án: $PROJECT_DIR"
-          echo "Tên dự án: $PROJECT_NAME"
-          
           cd "$PROJECT_DIR"
           
-          # Biên dịch với cờ ONLY_ACTIVE_ARCH=NO để loại bỏ hoàn toàn lỗi exit code 65
-          xcodebuild -project "$PROJECT_NAME.xcodeproj" -scheme "$PROJECT_NAME" -configuration Release -sdk iphonesimulator CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ONLY_ACTIVE_ARCH=NO build
+          # Dùng chế độ Generic iOS Device kết hợp vô hiệu hóa toàn bộ yêu cầu chứng chỉ để tránh exit code 65
+          xcodebuild archive -project "$PROJECT_NAME.xcodeproj" -scheme "$PROJECT_NAME" -configuration Release -destination "generic/platform=iOS" -archivePath "$PROJECT_NAME.xcarchive" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
           
+          # Đóng gói xcarchive thành Payload .ipa
           mkdir -p Payload
-          cp -R "build/Release-iphonesimulator/$PROJECT_NAME.app" Payload/
+          cp -R "$PROJECT_NAME.xcarchive/Products/Applications/$PROJECT_NAME.app" Payload/
           zip -r "$PROJECT_NAME.ipa" Payload/
           
           mv "$PROJECT_NAME.ipa" ../headlockvip.ipa
